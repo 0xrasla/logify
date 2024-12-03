@@ -1,0 +1,71 @@
+{
+  "name": "elysia-easy-logger",
+  "version": "1.0.0",
+  "description": "A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applications",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE.md",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "bun run main.ts",
+    "typecheck": "tsc",
+    "build": "bun build ./src/index.ts --outdir=dist --target=node",
+    "dev": "bun run --watch main.ts",
+    "prepublishOnly": "bun run build",
+    "format": "prettier --write \"src/**/*.ts\" \"examples/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" --fix",
+    "test": "bun test"
+  },
+  "keywords": [
+    "elysia",
+    "logger",
+    "middleware",
+    "logging",
+    "bun",
+    "typescript",
+    "console-log",
+    "file-log",
+    "http-logger"
+  ],
+  "author": {
+    "name": "0xRasla",
+    "email": "programmer.rasla@gmail.com",
+    "url": "https://github.com/0xRasla"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/0xRasla/elysia-easy-logger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/0xRasla/elysia-easy-logger/issues"
+  },
+  "homepage": "https://github.com/0xRasla/elysia-easy-logger#readme",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "elysia": "1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "@types/bun": "1",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "eslint": "^8.49.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "elysia": ">=0.7.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "bun": ">=1.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
