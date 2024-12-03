@@ -1,6 +1,6 @@
 # Easy Logger for Elysia.js
 
-[![npm version](https://badge.fury.io/js/easy-logger-elysia.svg)](https://www.npmjs.com/package/easy-logger-elysia)
+[![npm version](https://badge.fury.io/js/easy-logger-elysia.svg)](https://www.npmjs.com/package/elysia-easy-logger)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applications. This logger provides beautiful console output and optional file logging capabilities with minimal configuration.
@@ -26,29 +26,29 @@ bun add easy-logger-elysia
 ## 🏃 Quick Start
 
 ```typescript
-import { Elysia } from 'elysia'
-import { easyLogger } from 'easy-logger-elysia'
+import { Elysia } from "elysia";
+import { easyLogger } from "easy-logger-elysia";
 
 const app = new Elysia()
   .use(easyLogger())
-  .get('/', () => 'Hello World!')
-  .listen(3000)
+  .get("/", () => "Hello World!")
+  .listen(3000);
 ```
 
 ## 🎨 Configuration Options
 
 ```typescript
 interface LoggerOptions {
-  console?: boolean;    // Enable console logging (default: true)
-  file?: boolean;       // Enable file logging (default: false)
-  filePath?: string;    // Custom file path for logs (default: './logs/app.log')
-  level?: LogLevel;     // Minimum log level (default: 'info')
-  format?: string;      // Custom format for log messages
-  skip?: string[];      // Paths to skip from logging
-  includeIp?: boolean;  // Include IP address in logs (default: false)
+  console?: boolean; // Enable console logging (default: true)
+  file?: boolean; // Enable file logging (default: false)
+  filePath?: string; // Custom file path for logs (default: './logs/app.log')
+  level?: LogLevel; // Minimum log level (default: 'info')
+  format?: string; // Custom format for log messages
+  skip?: string[]; // Paths to skip from logging
+  includeIp?: boolean; // Include IP address in logs (default: false)
 }
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 ```
 
 ## 📝 Log Formats
@@ -57,21 +57,22 @@ The logger supports both string messages and structured logging:
 
 ```typescript
 // String message
-logger.info('Simple message');
+logger.info("Simple message");
 
 // Structured logging
 logger.info({
-  method: 'GET',
-  path: '/api',
+  method: "GET",
+  path: "/api",
   statusCode: 200,
   duration: 5,
-  ip: '127.0.0.1'
+  ip: "127.0.0.1",
 });
 ```
 
 ### Format Tokens
 
 Available tokens for custom formats:
+
 - `{timestamp}` - ISO timestamp
 - `{level}` - Log level (DEBUG, INFO, WARN, ERROR)
 - `{method}` - HTTP method
@@ -84,39 +85,47 @@ Available tokens for custom formats:
 ## 📚 Examples
 
 ### Basic Usage
+
 ```typescript
-import { Elysia } from 'elysia'
-import { easyLogger } from 'easy-logger-elysia'
+import { Elysia } from "elysia";
+import { easyLogger } from "easy-logger-elysia";
 
 const app = new Elysia()
   .use(easyLogger())
-  .get('/', () => 'Hello World!')
-  .listen(3000)
+  .get("/", () => "Hello World!")
+  .listen(3000);
 ```
 
 ### Advanced Configuration
+
 ```typescript
-const app = new Elysia()
-  .use(easyLogger({
+const app = new Elysia().use(
+  easyLogger({
     console: true,
     file: true,
-    filePath: './logs/app.log',
+    filePath: "./logs/app.log",
     includeIp: true,
-    level: 'debug',
-    skip: ['/health', '/metrics'],
-    format: '[{timestamp}] {level} [{method}] {path} - Status: {statusCode} - Time: {duration}ms{ip}'
-  }))
+    level: "debug",
+    skip: ["/health", "/metrics"],
+    format:
+      "[{timestamp}] {level} [{method}] {path} - Status: {statusCode} - Time: {duration}ms{ip}",
+  })
+);
 ```
 
 ### Custom Format with Emojis
+
 ```typescript
-const app = new Elysia()
-  .use(easyLogger({
-    format: '🚀 {timestamp} | {level} | {method} {path} | Status: {statusCode} | Time: {duration}ms{ip}'
-  }))
+const app = new Elysia().use(
+  easyLogger({
+    format:
+      "🚀 {timestamp} | {level} | {method} {path} | Status: {statusCode} | Time: {duration}ms{ip}",
+  })
+);
 ```
 
 More examples can be found in the [examples](./examples) directory:
+
 - [Basic Usage](./examples/basic-usage.ts)
 - [Advanced Usage](./examples/advanced-usage.ts)
 - [Custom Format](./examples/custom-format.ts)

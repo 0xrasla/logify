@@ -47,7 +47,8 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^5.3.0",
-    "elysia": "1"
+    "elysia": "1",
+    "elysia-easy-logger": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",
