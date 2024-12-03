@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { LogEntry, LogLevel, LoggerOptions } from "./types";
+import { ILogger, LogEntry, LoggerOptions, LogLevel } from "./types";
 
-export class Logger {
+export class Logger implements ILogger {
   private options: LoggerOptions;
   private static readonly DEFAULT_OPTIONS: LoggerOptions = {
     console: true,

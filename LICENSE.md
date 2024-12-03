@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2023 Easy Logger Contributors
+Copyright (c) 2024 Logify Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

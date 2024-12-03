@@ -21,7 +21,7 @@ export interface LogEntry {
   ip?: string;
 }
 
-export interface Logger {
+export interface ILogger {
   debug(message: string | Partial<LogEntry>): void;
   info(message: string | Partial<LogEntry>): void;
   warn(message: string | Partial<LogEntry>): void;

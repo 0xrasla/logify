@@ -1,6 +1,6 @@
 # Logify for Elysia.js
 
-[![npm version](https://badge.fury.io/js/@rasla/logify.svg)](https://www.npmjs.com/package/@rasla/logify)
+[![npm version](https://badge.fury.io/js/npm.svg)](https://www.npmjs.com/package/@rasla/logify)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applications. This logger provides beautiful console output and optional file logging capabilities with minimal configuration.
