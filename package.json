@@ -1,6 +1,6 @@
 {
-  "name": "elysia-easy-logger",
-  "version": "1.0.0",
+  "name": "@rasla/logify",
+  "version": "2.0.0",
   "description": "A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applications",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -13,7 +13,9 @@
   "scripts": {
     "start": "bun run main.ts",
     "typecheck": "tsc",
-    "build": "bun build ./src/index.ts --outdir=dist --target=node",
+    "build:types": "tsc --emitDeclarationOnly",
+    "build:js": "bun build ./src/index.ts --outdir=dist --target=node",
+    "build": "bun run build:types && bun run build:js",
     "dev": "bun run --watch main.ts",
     "prepublishOnly": "bun run build",
     "format": "prettier --write \"src/**/*.ts\" \"examples/**/*.ts\"",
@@ -38,17 +40,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/0xRasla/elysia-easy-logger.git"
+    "url": "git+https://github.com/0xRasla/logify.git"
   },
   "bugs": {
-    "url": "https://github.com/0xRasla/elysia-easy-logger/issues"
+    "url": "https://github.com/0xRasla/logify/issues"
   },
-  "homepage": "https://github.com/0xRasla/elysia-easy-logger#readme",
+  "homepage": "https://github.com/0xRasla/logify#readme",
   "license": "MIT",
   "dependencies": {
     "chalk": "^5.3.0",
-    "elysia": "1",
-    "elysia-easy-logger": "^1.0.0"
+    "elysia": "1"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",

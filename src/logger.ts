@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import { appendFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { LogEntry, LogLevel, Logger, LoggerOptions } from "./types";
+import { LogEntry, LogLevel, LoggerOptions } from "./types";
 
-export class EasyLogger implements Logger {
+export class Logger {
   private options: LoggerOptions;
   private static readonly DEFAULT_OPTIONS: LoggerOptions = {
     console: true,
@@ -22,7 +22,7 @@ export class EasyLogger implements Logger {
   };
 
   constructor(options: LoggerOptions = {}) {
-    this.options = { ...EasyLogger.DEFAULT_OPTIONS, ...options };
+    this.options = { ...Logger.DEFAULT_OPTIONS, ...options };
     this.initializeFileLogger();
   }
 
@@ -43,7 +43,7 @@ export class EasyLogger implements Logger {
   }
 
   private formatLogEntry(entry: LogEntry): string {
-    let format = this.options.format || EasyLogger.DEFAULT_OPTIONS.format || "";
+    let format = this.options.format || Logger.DEFAULT_OPTIONS.format || "";
 
     return format
       .replace("{timestamp}", entry.timestamp.toISOString())

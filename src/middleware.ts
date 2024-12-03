@@ -1,9 +1,9 @@
 import { Elysia } from "elysia";
-import { EasyLogger } from "./logger";
+import { Logger } from "./logger";
 import { LoggerOptions } from "./types";
 
-export function easyLogger(options: LoggerOptions = {}) {
-  const logger = new EasyLogger(options);
+export function logger(options: LoggerOptions = {}) {
+  const logger = new Logger(options);
 
   return new Elysia()
     .derive(({ request }) => {
@@ -18,11 +18,13 @@ export function easyLogger(options: LoggerOptions = {}) {
     })
     .onRequest(({ request, store }) => {
       const message = options.includeIp
-        ? `${request.method} ${request.url} from ${store.ip}`
+        ? // @ts-ignore
+          `${request.method} ${request.url} from ${store.ip}`
         : `${request.method} ${request.url}`;
       logger.info(message);
     })
     .onAfterResponse(({ request, response, store }) => {
+      // @ts-ignore
       const duration = Date.now() - store.startTime;
       const status = response instanceof Response ? response.status : 200;
       const url = new URL(request.url);
@@ -38,10 +40,12 @@ export function easyLogger(options: LoggerOptions = {}) {
         path: url.pathname,
         statusCode: status,
         duration,
+        // @ts-ignore
         ip: store.ip,
       });
     })
     .onError(({ error, request, store }) => {
+      // @ts-ignore
       const duration = Date.now() - store.startTime;
       const url = new URL(request.url);
 
@@ -53,6 +57,7 @@ export function easyLogger(options: LoggerOptions = {}) {
         statusCode: 500,
         duration,
         message: error.message,
+        // @ts-ignore
         ip: store.ip,
       });
     });

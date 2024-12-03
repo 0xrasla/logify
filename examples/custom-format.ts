@@ -1,10 +1,10 @@
 import { Elysia } from "elysia";
-import { easyLogger } from "../src";
+import { logger } from "@rasla/logify";
 
 // Example with custom format and manual logging
 const app = new Elysia()
   .use(
-    easyLogger({
+    logger({
       format:
         "🚀 {timestamp} | {level} | {method} {path} | Status: {statusCode} | Time: {duration}ms{ip}",
       includeIp: true,

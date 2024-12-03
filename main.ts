@@ -1,9 +1,9 @@
 import { Elysia } from "elysia";
-import { easyLogger } from "./src";
+import { logger } from "./src";
 
 const app = new Elysia()
   .use(
-    easyLogger({
+    logger({
       console: true,
       file: true,
       filePath: "./logs/app.log",

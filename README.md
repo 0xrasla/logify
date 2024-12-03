@@ -1,6 +1,6 @@
-# Easy Logger for Elysia.js
+# Logify for Elysia.js
 
-[![npm version](https://badge.fury.io/js/easy-logger-elysia.svg)](https://www.npmjs.com/package/elysia-easy-logger)
+[![npm version](https://badge.fury.io/js/@rasla/logify.svg)](https://www.npmjs.com/package/@rasla/logify)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applications. This logger provides beautiful console output and optional file logging capabilities with minimal configuration.
@@ -20,17 +20,17 @@ A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applic
 ## 📦 Installation
 
 ```bash
-bun add easy-logger-elysia
+bun add @rasla/logify
 ```
 
 ## 🏃 Quick Start
 
 ```typescript
 import { Elysia } from "elysia";
-import { easyLogger } from "easy-logger-elysia";
+import { logger } from "@rasla/logify";
 
 const app = new Elysia()
-  .use(easyLogger())
+  .use(logger())
   .get("/", () => "Hello World!")
   .listen(3000);
 ```
@@ -88,10 +88,10 @@ Available tokens for custom formats:
 
 ```typescript
 import { Elysia } from "elysia";
-import { easyLogger } from "easy-logger-elysia";
+import { logger } from "@rasla/logify";
 
 const app = new Elysia()
-  .use(easyLogger())
+  .use(logger())
   .get("/", () => "Hello World!")
   .listen(3000);
 ```
@@ -100,7 +100,7 @@ const app = new Elysia()
 
 ```typescript
 const app = new Elysia().use(
-  easyLogger({
+  logger({
     console: true,
     file: true,
     filePath: "./logs/app.log",
@@ -117,7 +117,7 @@ const app = new Elysia().use(
 
 ```typescript
 const app = new Elysia().use(
-  easyLogger({
+  logger({
     format:
       "🚀 {timestamp} | {level} | {method} {path} | Status: {statusCode} | Time: {duration}ms{ip}",
   })
@@ -133,7 +133,7 @@ More examples can be found in the [examples](./examples) directory:
 ## 📁 Project Structure
 
 ```
-easy-logger/
+logify/
 ├── src/
 │   ├── index.ts        # Main entry point
 │   ├── logger.ts       # Logger implementation
@@ -165,8 +165,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 If you find this project useful, please give it a ⭐️ on GitHub! If you have any questions or need help:
 
-- 📫 Open an [issue](https://github.com/yourusername/easy-logger/issues)
-- 💬 Start a [discussion](https://github.com/yourusername/easy-logger/discussions)
+- 📫 Open an [issue](https://github.com/0xRasla/logify/issues)
+- 💬 Start a [discussion](https://github.com/0xRasla/logify/discussions)
 - 📖 Check the [examples](./examples) directory
 
 ## 🌟 Acknowledgments

@@ -1,26 +1,26 @@
 import { Elysia } from "elysia";
-import { easyLogger } from "../src";
+import { logger } from "@rasla/logify";
 
 // Advanced usage with custom configuration
 const app = new Elysia()
   .use(
-    easyLogger({
+    logger({
       console: true,
       file: true,
-      filePath: "./logs/advanced.log",
-      includeIp: true,
+      filePath: "./logs/app.log",
       level: "debug",
       skip: ["/health", "/metrics"],
-      format: "[{timestamp}] {level} [{method}] {path} - Status: {statusCode} - Time: {duration}ms{ip}",
+      includeIp: true,
     })
   )
-  .get("/", () => "Hello from advanced example!")
+  .get("/", () => "Hello World!")
   .get("/health", () => "OK") // This route will be skipped from logging
+  .get("/metrics", () => ({ uptime: process.uptime() }))
   .get("/error", () => {
     throw new Error("Test error handling");
   })
-  .listen(3001);
+  .listen(3000);
 
 console.log(
-  `🦊 Advanced example running at ${app.server?.hostname}:${app.server?.port}`
+  `🦊 Server is running at ${app.server?.hostname}:${app.server?.port}`
 );
