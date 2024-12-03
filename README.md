@@ -1,21 +1,19 @@
 # Logify for Elysia.js
 
-[![npm version](https://badge.fury.io/js/npm.svg)](https://www.npmjs.com/package/@rasla/logify)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applications. This logger provides beautiful console output and optional file logging capabilities with minimal configuration.
+A beautiful, fast, and type-safe logging middleware for Elysia.js applications. Get instant insights into your HTTP requests with colorized console output and structured file logging.
 
-## 🚀 Features
+## ✨ Features
 
 - 🎨 Beautiful console output with color-coded log levels
-- 📝 Request/Response logging with duration tracking
-- 🌐 IP address logging support
-- 📁 File logging with automatic directory creation
-- ⚡ Zero-config setup with sensible defaults
-- 🔧 Highly customizable log formats
-- 🎯 Path-based logging skip
-- 🪶 Lightweight with minimal dependencies
-- 💪 TypeScript support with full type definitions
+- ⚡ Zero-config with smart defaults
+- 📊 Request duration and status code tracking
+- 🌐 IP address logging with proxy support
+- 📝 Structured logging with TypeScript support
+- 🎯 Path-based request filtering
+- 🔄 Automatic log directory creation
+- 🎛️ Fully customizable log formats
 
 ## 📦 Installation
 
@@ -23,7 +21,7 @@ A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applic
 bun add @rasla/logify
 ```
 
-## 🏃 Quick Start
+## 🚀 Quick Start
 
 ```typescript
 import { Elysia } from "elysia";
@@ -35,141 +33,130 @@ const app = new Elysia()
   .listen(3000);
 ```
 
-## 🎨 Configuration Options
+Output:
 
-```typescript
-interface LoggerOptions {
-  console?: boolean; // Enable console logging (default: true)
-  file?: boolean; // Enable file logging (default: false)
-  filePath?: string; // Custom file path for logs (default: './logs/app.log')
-  level?: LogLevel; // Minimum log level (default: 'info')
-  format?: string; // Custom format for log messages
-  skip?: string[]; // Paths to skip from logging
-  includeIp?: boolean; // Include IP address in logs (default: false)
-}
-
-type LogLevel = "debug" | "info" | "warn" | "error";
+```
+[2024-12-03T17:48:54.721Z] INFO [GET  ] / - 200 1ms
 ```
 
-## 📝 Log Formats
-
-The logger supports both string messages and structured logging:
-
-```typescript
-// String message
-logger.info("Simple message");
-
-// Structured logging
-logger.info({
-  method: "GET",
-  path: "/api",
-  statusCode: 200,
-  duration: 5,
-  ip: "127.0.0.1",
-});
-```
-
-### Format Tokens
-
-Available tokens for custom formats:
-
-- `{timestamp}` - ISO timestamp
-- `{level}` - Log level (DEBUG, INFO, WARN, ERROR)
-- `{method}` - HTTP method
-- `{path}` - Request path
-- `{statusCode}` - HTTP status code
-- `{duration}` - Request duration in ms
-- `{message}` - Log message
-- `{ip}` - Client IP address (when enabled)
-
-## 📚 Examples
-
-### Basic Usage
+## 🎨 Configuration
 
 ```typescript
 import { Elysia } from "elysia";
 import { logger } from "@rasla/logify";
 
-const app = new Elysia()
-  .use(logger())
-  .get("/", () => "Hello World!")
-  .listen(3000);
-```
+const app = new Elysia();
 
-### Advanced Configuration
-
-```typescript
-const app = new Elysia().use(
+// All options are optional with smart defaults
+app.use(
   logger({
+    // Console logging (default: true)
     console: true,
+
+    // File logging (default: false)
     file: true,
     filePath: "./logs/app.log",
-    includeIp: true,
-    level: "debug",
+
+    // Log level (default: "info")
+    level: "debug", // "debug" | "info" | "warn" | "error"
+
+    // Skip certain paths
     skip: ["/health", "/metrics"],
+
+    // Include IP address (default: false)
+    includeIp: true,
+
+    // Custom format (see Format Tokens below)
     format:
-      "[{timestamp}] {level} [{method}] {path} - Status: {statusCode} - Time: {duration}ms{ip}",
+      "[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms{ip}",
   })
 );
+
+app.listen(3000);
 ```
 
-### Custom Format with Emojis
+## 📝 Format Tokens
+
+Customize your log format using these tokens:
+
+| Token          | Description   | Example                    |
+| -------------- | ------------- | -------------------------- |
+| `{timestamp}`  | ISO timestamp | `2024-12-03T17:48:54.721Z` |
+| `{level}`      | Log level     | `INFO`, `ERROR`            |
+| `{method}`     | HTTP method   | `GET`, `POST`              |
+| `{path}`       | Request path  | `/api/users`               |
+| `{statusCode}` | HTTP status   | `200`, `404`               |
+| `{duration}`   | Request time  | `123ms`                    |
+| `{ip}`         | Client IP     | `127.0.0.1`                |
+
+## 🎯 Examples
+
+### Basic API Server
 
 ```typescript
-const app = new Elysia().use(
+import { Elysia } from "elysia";
+import { logger } from "@rasla/logify";
+
+const app = new Elysia()
+  .use(logger())
+  .get("/", () => "Hello")
+  .post("/users", ({ body }) => ({ created: true }))
+  .get("/users/:id", ({ params: { id } }) => ({ id }))
+  .listen(3000);
+```
+
+### Production Setup
+
+```typescript
+import { Elysia } from "elysia";
+import { logger } from "@rasla/logify";
+
+const app = new Elysia();
+
+// Production configuration
+app.use(
   logger({
+    // Enable file logging
+    file: true,
+    filePath: "./logs/app.log",
+
+    // Include IP for security
+    includeIp: true,
+
+    // Skip health checks
+    skip: ["/health"],
+
+    // Detailed format
     format:
-      "🚀 {timestamp} | {level} | {method} {path} | Status: {statusCode} | Time: {duration}ms{ip}",
+      "[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms - {ip}",
   })
 );
+
+// Routes
+app
+  .get("/", () => "API v1")
+  .get("/health", () => "OK")
+  .get("/users", () => db.users.findMany())
+  .post("/users", ({ body }) => db.users.create({ data: body }))
+  .listen(3000);
 ```
 
-More examples can be found in the [examples](./examples) directory:
+### Error Handling
 
-- [Basic Usage](./examples/basic-usage.ts)
-- [Advanced Usage](./examples/advanced-usage.ts)
-- [Custom Format](./examples/custom-format.ts)
+```typescript
+import { Elysia } from "elysia";
+import { logger } from "@rasla/logify";
 
-## 📁 Project Structure
+const app = new Elysia()
+  .use(logger({ level: "debug" }))
+  .get("/error", () => {
+    throw new Error("Something went wrong");
+  })
+  .listen(3000);
 
-```
-logify/
-├── src/
-│   ├── index.ts        # Main entry point
-│   ├── logger.ts       # Logger implementation
-│   ├── middleware.ts   # Elysia middleware
-│   └── types.ts        # TypeScript types
-├── examples/
-│   ├── basic-usage.ts
-│   ├── advanced-usage.ts
-│   └── custom-format.ts
-├── package.json
-└── README.md
+// Output: [2024-12-03T17:48:54.721Z] ERROR [GET  ] /error - 500 1ms
 ```
 
-## 🤝 Contributing
+## 📄 License
 
-Contributions are welcome! Please feel free to submit a Pull Request. Here's how you can contribute:
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Support
-
-If you find this project useful, please give it a ⭐️ on GitHub! If you have any questions or need help:
-
-- 📫 Open an [issue](https://github.com/0xRasla/logify/issues)
-- 💬 Start a [discussion](https://github.com/0xRasla/logify/discussions)
-- 📖 Check the [examples](./examples) directory
-
-## 🌟 Acknowledgments
-
-- Elysia.js team for the amazing framework
-- All our contributors who help make this project better
+MIT License - Created by [0xRasla](https://github.com/0xRasla)

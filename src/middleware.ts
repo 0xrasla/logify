@@ -6,59 +6,49 @@ export function logger(options: LoggerOptions = {}) {
   const logger = new Logger(options);
 
   return new Elysia()
-    .derive(({ request }) => {
-      return {
-        startTime: Date.now(),
-        ip:
-          request.headers.get("x-forwarded-for") ||
-          request.headers.get("x-real-ip") ||
-          (request as any).socket?.remoteAddress ||
-          "unknown",
-      };
-    })
-    .onRequest(({ request, store }) => {
-      const message = options.includeIp
-        ? // @ts-ignore
-          `${request.method} ${request.url} from ${store.ip}`
-        : `${request.method} ${request.url}`;
-      logger.info(message);
-    })
-    .onAfterResponse(({ request, response, store }) => {
-      // @ts-ignore
-      const duration = Date.now() - store.startTime;
-      const status = response instanceof Response ? response.status : 200;
-      const url = new URL(request.url);
-
+    .derive(
+      {
+        as: "scoped",
+      },
+      ({ headers }) => {
+        return {
+          startTime: Date.now(),
+          ip:
+            headers["x-forwarded-for"] ||
+            headers["x-real-ip"] ||
+            headers["x-client-ip"] ||
+            "",
+        };
+      }
+    )
+    .onAfterHandle({ as: "global" }, (ctx) => {
+      const url = new URL(ctx.request.url);
       if (options.skip?.includes(url.pathname)) {
         return;
       }
 
-      logger.log("info", {
-        timestamp: new Date(),
-        level: "info",
-        method: request.method,
+      const duration = Date.now() - (ctx.startTime || Date.now());
+
+      logger.info({
+        method: ctx.request.method,
         path: url.pathname,
-        statusCode: status,
+        statusCode: 200,
         duration,
-        // @ts-ignore
-        ip: store.ip,
+        ip: ctx.ip,
+        message: `${ctx.request.method} ${url.pathname}`,
       });
     })
-    .onError(({ error, request, store }) => {
-      // @ts-ignore
-      const duration = Date.now() - store.startTime;
+    .onError(({ error, request, ip, startTime }) => {
       const url = new URL(request.url);
+      const duration = Date.now() - (startTime || Date.now()) || 1;
 
       logger.error({
-        timestamp: new Date(),
-        level: "error",
         method: request.method,
         path: url.pathname,
         statusCode: 500,
         duration,
+        ip: ip,
         message: error.message,
-        // @ts-ignore
-        ip: store.ip,
       });
     });
 }
