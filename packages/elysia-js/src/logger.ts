@@ -17,7 +17,8 @@ export class Logger implements ILogger {
     console: true,
     file: false,
     level: "info",
-    format: "[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms{ip}",
+    format:
+      "[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms{ip} {message}",
     includeIp: false,
   };
 

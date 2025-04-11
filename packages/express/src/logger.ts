@@ -1,7 +1,7 @@
-import chalk from 'chalk';
-import { appendFileSync, existsSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
-import { ILogger, LogEntry, LoggerOptions, LogLevel } from './types';
+import chalk from "chalk";
+import { appendFileSync, existsSync, mkdirSync } from "fs";
+import { dirname } from "path";
+import { ILogger, LogEntry, LoggerOptions, LogLevel } from "./types";
 
 const LOG_COLORS = {
   debug: chalk.gray,
@@ -14,11 +14,12 @@ export class Logger implements ILogger {
   private static readonly DEFAULT_OPTIONS: Required<LoggerOptions> = {
     console: true,
     file: false,
-    filePath: './logs/app.log',
-    level: 'info',
+    filePath: "./logs/app.log",
+    level: "info",
     skip: [],
     includeIp: false,
-    format: '[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms{ip}',
+    format:
+      "[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms{ip} {message}",
   };
 
   private options: LoggerOptions;
@@ -29,19 +30,19 @@ export class Logger implements ILogger {
   }
 
   public debug(input: string | Partial<LogEntry>): void {
-    this.log('debug', input);
+    this.log("debug", input);
   }
 
   public info(input: string | Partial<LogEntry>): void {
-    this.log('info', input);
+    this.log("info", input);
   }
 
   public warn(input: string | Partial<LogEntry>): void {
-    this.log('warn', input);
+    this.log("warn", input);
   }
 
   public error(input: string | Partial<LogEntry>): void {
-    this.log('error', input);
+    this.log("error", input);
   }
 
   public log(level: LogLevel, input: string | Partial<LogEntry>): void {
@@ -61,21 +62,24 @@ export class Logger implements ILogger {
   }
 
   private shouldLog(level: LogLevel): boolean {
-    const levels: LogLevel[] = ['debug', 'info', 'warn', 'error'];
-    const configuredLevel = levels.indexOf(this.options.level || 'info');
+    const levels: LogLevel[] = ["debug", "info", "warn", "error"];
+    const configuredLevel = levels.indexOf(this.options.level || "info");
     const currentLevel = levels.indexOf(level);
     return currentLevel >= configuredLevel;
   }
 
-  private createLogEntry(level: LogLevel, input: string | Partial<LogEntry>): LogEntry {
+  private createLogEntry(
+    level: LogLevel,
+    input: string | Partial<LogEntry>
+  ): LogEntry {
     const timestamp = new Date();
 
-    if (typeof input === 'string') {
+    if (typeof input === "string") {
       return {
         timestamp,
         level,
-        method: '',
-        path: '',
+        method: "",
+        path: "",
         statusCode: 0,
         duration: 0,
         message: input,
@@ -85,11 +89,11 @@ export class Logger implements ILogger {
     return {
       timestamp,
       level,
-      method: input.method || '',
-      path: input.path || '',
+      method: input.method || "",
+      path: input.path || "",
       statusCode: input.statusCode || 0,
       duration: input.duration || 0,
-      message: input.message || '',
+      message: input.message || "",
       ip: input.ip,
     };
   }
@@ -98,31 +102,31 @@ export class Logger implements ILogger {
     const format = this.options.format || Logger.DEFAULT_OPTIONS.format;
     const timestamp = entry.timestamp.toISOString();
     const level = entry.level.toUpperCase().padEnd(5);
-    const method = (entry.method || '').toUpperCase().padEnd(7);
-    const path = entry.path || '-';
-    const statusCode = entry.statusCode ? `${entry.statusCode}` : '';
-    const duration = entry.duration ? `${entry.duration}` : '';
-    const message = entry.message || '';
-    const ip = entry.ip && this.options.includeIp ? ` from ${entry.ip}` : '';
+    const method = (entry.method || "").toUpperCase().padEnd(7);
+    const path = entry.path || "-";
+    const statusCode = entry.statusCode ? `${entry.statusCode}` : "";
+    const duration = entry.duration ? `${entry.duration}` : "";
+    const message = entry.message || "";
+    const ip = entry.ip && this.options.includeIp ? ` from ${entry.ip}` : "";
 
     return format!
-      .replace('{timestamp}', timestamp)
-      .replace('{level}', level)
-      .replace('{method}', method)
-      .replace('{path}', path)
-      .replace('{statusCode}', statusCode)
-      .replace('{duration}', duration)
-      .replace('{message}', message)
-      .replace('{ip}', ip)
+      .replace("{timestamp}", timestamp)
+      .replace("{level}", level)
+      .replace("{method}", method)
+      .replace("{path}", path)
+      .replace("{statusCode}", statusCode)
+      .replace("{duration}", duration)
+      .replace("{message}", message)
+      .replace("{ip}", ip)
       .trim();
   }
 
   private writeToFile(message: string): void {
     if (this.options.file && this.options.filePath) {
       try {
-        appendFileSync(this.options.filePath, message + '\n');
+        appendFileSync(this.options.filePath, message + "\n");
       } catch (error) {
-        console.error('Failed to write to log file:', error);
+        console.error("Failed to write to log file:", error);
       }
     }
   }
@@ -135,7 +139,7 @@ export class Logger implements ILogger {
           mkdirSync(dir, { recursive: true });
         }
       } catch (error) {
-        console.error('Failed to initialize log directory:', error);
+        console.error("Failed to initialize log directory:", error);
       }
     }
   }

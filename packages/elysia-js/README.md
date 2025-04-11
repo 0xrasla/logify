@@ -14,6 +14,8 @@ A beautiful, fast, and type-safe logging middleware for Elysia.js applications. 
 - 🎯 Path-based request filtering
 - 🔄 Automatic log directory creation
 - 🎛️ Fully customizable log formats
+- 🌍 Global logger instance for application-wide logging
+- 📝 Convenient logging functions: debug(), info(), warn(), and error()
 
 ## 📦 Installation
 
@@ -34,8 +36,53 @@ const app = new Elysia()
 ```
 
 Output:
+
 ```
 [2024-12-03T17:48:54.721Z] INFO [GET  ] / - 200 1ms
+```
+
+## 🌍 Global Logger
+
+Logify provides a global logger that can be accessed from anywhere in your application:
+
+```typescript
+import { Elysia } from "elysia";
+import {
+  logger,
+  initializeLogger,
+  debug,
+  info,
+  warn,
+  error,
+} from "@rasla/logify";
+
+// Configure the global logger once at startup
+initializeLogger({
+  level: "debug",
+  file: true,
+  filePath: "./logs/app.log",
+});
+
+// Now you can use logging functions anywhere in your code
+const app = new Elysia()
+  .use(logger()) // Uses the global logger configuration
+  .get("/", () => {
+    debug("Processing root request"); // Debug log
+    return "Hello World!";
+  })
+  .get("/users", () => {
+    info("Fetching users"); // Info log
+    return ["Alice", "Bob"];
+  })
+  .post("/users", () => {
+    warn("User validation skipped"); // Warning log
+    return { created: true };
+  })
+  .get("/error", () => {
+    error("Critical error occurred"); // Error log
+    throw new Error("Something went wrong");
+  })
+  .listen(3000);
 ```
 
 ## 🎨 Configuration
@@ -78,15 +125,15 @@ app.listen(3000);
 
 Customize your log format using these tokens:
 
-| Token | Description | Example |
-|-------|-------------|---------|
-| `{timestamp}` | ISO timestamp | `2024-12-03T17:48:54.721Z` |
-| `{level}` | Log level | `INFO`, `ERROR` |
-| `{method}` | HTTP method | `GET`, `POST` |
-| `{path}` | Request path | `/api/users` |
-| `{statusCode}` | HTTP status | `200`, `404` |
-| `{duration}` | Request time | `123ms` |
-| `{ip}` | Client IP | `127.0.0.1` |
+| Token          | Description   | Example                    |
+| -------------- | ------------- | -------------------------- |
+| `{timestamp}`  | ISO timestamp | `2024-12-03T17:48:54.721Z` |
+| `{level}`      | Log level     | `INFO`, `ERROR`            |
+| `{method}`     | HTTP method   | `GET`, `POST`              |
+| `{path}`       | Request path  | `/api/users`               |
+| `{statusCode}` | HTTP status   | `200`, `404`               |
+| `{duration}`   | Request time  | `123ms`                    |
+| `{ip}`         | Client IP     | `127.0.0.1`                |
 
 ## 🎯 Examples
 
@@ -104,32 +151,78 @@ const app = new Elysia()
   .listen(3000);
 ```
 
+### Using Global Logger Functions
+
+```typescript
+import { Elysia } from "elysia";
+import {
+  logger,
+  initializeLogger,
+  debug,
+  info,
+  warn,
+  error,
+} from "@rasla/logify";
+
+// Initialize once with your preferred configuration
+initializeLogger({
+  level: "debug",
+  console: true,
+  file: true,
+  filePath: "./logs/app.log",
+});
+
+// Then use anywhere in your application
+function userService() {
+  debug("User service initialized");
+
+  return {
+    getUser(id: string) {
+      info(`Getting user with ID: ${id}`);
+      // Implementation...
+    },
+    createUser(data: any) {
+      if (!data.email) {
+        warn("Creating user without email");
+      }
+      // Implementation...
+    },
+    deleteUser(id: string) {
+      error(`User deletion requested: ${id}`);
+      // Implementation...
+    },
+  };
+}
+
+const app = new Elysia()
+  .use(logger())
+  .get("/users/:id", ({ params }) => {
+    const service = userService();
+    return service.getUser(params.id);
+  })
+  .listen(3000);
+```
+
 ### Production Setup
 
 ```typescript
 import { Elysia } from "elysia";
-import { logger } from "@rasla/logify";
+import { logger, initializeLogger } from "@rasla/logify";
+
+// Configure global logger for production
+initializeLogger({
+  level: "info", // Only info and above in production
+  file: true,
+  filePath: "./logs/app.log",
+  includeIp: true,
+  format:
+    "[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms - {ip}",
+});
 
 const app = new Elysia();
 
-// Production configuration
-app.use(
-  logger({
-    // Enable file logging
-    file: true,
-    filePath: "./logs/app.log",
-
-    // Include IP for security
-    includeIp: true,
-
-    // Skip health checks
-    skip: ["/health"],
-
-    // Detailed format
-    format:
-      "[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms - {ip}",
-  })
-);
+// Use the configured logger middleware
+app.use(logger({ skip: ["/health"] }));
 
 // Routes
 app
@@ -144,16 +237,18 @@ app
 
 ```typescript
 import { Elysia } from "elysia";
-import { logger } from "@rasla/logify";
+import { logger, error } from "@rasla/logify";
 
 const app = new Elysia()
   .use(logger({ level: "debug" }))
   .get("/error", () => {
+    error("Custom error before exception");
     throw new Error("Something went wrong");
   })
   .listen(3000);
 
-// Output: [2024-12-03T17:48:54.721Z] ERROR [GET  ] /error - 500 1ms
+// Middleware output: [2024-12-03T17:48:54.721Z] ERROR [GET  ] /error - 500 1ms
+// Custom log: [2024-12-03T17:48:54.720Z] ERROR Custom error before exception
 ```
 
 ## 🤝 Contributing
