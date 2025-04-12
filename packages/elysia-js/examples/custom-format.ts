@@ -8,7 +8,7 @@ const app = new Elysia()
       format:
         "🚀 {timestamp} | {level} | {method} {path} | Status: {statusCode} | Time: {duration}ms{ip}",
       includeIp: true,
-    })
+    }),
   )
   .get("/", ({ log }) => {
     // Manual logging examples
@@ -30,5 +30,5 @@ const app = new Elysia()
   .listen(3002);
 
 console.log(
-  `🦊 Custom format example running at ${app.server?.hostname}:${app.server?.port}`
+  `🦊 Custom format example running at ${app.server?.hostname}:${app.server?.port}`,
 );

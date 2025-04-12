@@ -11,7 +11,7 @@ const app = new Elysia()
       level: "debug",
       skip: ["/health", "/metrics"],
       includeIp: true,
-    })
+    }),
   )
   .get("/", () => "Hello World!")
   .get("/health", () => "OK") // This route will be skipped from logging
@@ -22,5 +22,5 @@ const app = new Elysia()
   .listen(3000);
 
 console.log(
-  `🦊 Server is running at ${app.server?.hostname}:${app.server?.port}`
+  `🦊 Server is running at ${app.server?.hostname}:${app.server?.port}`,
 );
