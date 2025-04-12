@@ -20,7 +20,7 @@ export function logger(options: LoggerOptions = {}) {
             headers["x-client-ip"] ||
             "",
         };
-      }
+      },
     )
     .onAfterHandle({ as: "global" }, (ctx) => {
       const url = new URL(ctx.request.url);

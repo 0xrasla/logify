@@ -82,7 +82,7 @@ export class Logger implements ILogger {
 
   private createLogEntry(
     level: LogLevel,
-    input: string | Partial<LogEntry>
+    input: string | Partial<LogEntry>,
   ): LogEntry {
     const timestamp = new Date();
 

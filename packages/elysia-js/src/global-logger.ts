@@ -35,7 +35,7 @@ export function getLogger(): ILogger {
  * @param input Log message or log entry
  */
 export function debug(
-  input: string | Partial<Parameters<ILogger["debug"]>[0]>
+  input: string | Partial<Parameters<ILogger["debug"]>[0]>,
 ): void {
   getLogger().debug(input);
 }
@@ -45,7 +45,7 @@ export function debug(
  * @param input Log message or log entry
  */
 export function info(
-  input: string | Partial<Parameters<ILogger["info"]>[0]>
+  input: string | Partial<Parameters<ILogger["info"]>[0]>,
 ): void {
   getLogger().info(input);
 }
@@ -55,7 +55,7 @@ export function info(
  * @param input Log message or log entry
  */
 export function warn(
-  input: string | Partial<Parameters<ILogger["warn"]>[0]>
+  input: string | Partial<Parameters<ILogger["warn"]>[0]>,
 ): void {
   getLogger().warn(input);
 }
@@ -65,7 +65,7 @@ export function warn(
  * @param input Log message or log entry
  */
 export function error(
-  input: string | Partial<Parameters<ILogger["error"]>[0]>
+  input: string | Partial<Parameters<ILogger["error"]>[0]>,
 ): void {
   getLogger().error(input);
 }
