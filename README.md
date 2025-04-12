@@ -21,17 +21,21 @@ This monorepo contains the following packages:
 - 🎯 Path-based request filtering
 - 🔄 Automatic log directory creation
 - 🎛️ Fully customizable log formats
+- 🌍 Global logger instance for application-wide logging
+- 📝 Convenient logging functions: debug(), info(), warn(), and error()
 
 ## 📥 Installation
 
 Choose the package that matches your framework:
 
 ### For Elysia.js
+
 ```bash
 bun add @rasla/logify
 ```
 
 ### For Express.js
+
 ```bash
 npm install @rasla/express-logify
 # or
@@ -43,6 +47,7 @@ pnpm add @rasla/express-logify
 ## 🚀 Quick Start
 
 ### Elysia.js
+
 ```typescript
 import { Elysia } from "elysia";
 import { logger } from "@rasla/logify";
@@ -54,17 +59,67 @@ const app = new Elysia()
 ```
 
 ### Express.js
+
 ```typescript
-import express from 'express';
-import { logger } from '@rasla/express-logify';
+import express from "express";
+import { logger } from "@rasla/express-logify";
 
 const app = express();
 
 app.use(logger());
-app.get('/', (req, res) => res.send('Hello World!'));
+app.get("/", (req, res) => res.send("Hello World!"));
 
 app.listen(3000);
 ```
+
+## 🌍 Global Logger
+
+Both packages now include a global logger that can be accessed from anywhere in your application:
+
+````typescript
+// Elysia.js
+import {
+  initializeLogger,
+  debug,
+  info,
+  warn,
+  error
+} from "@rasla/logify";
+
+// Express.js
+import {
+  initializeLogger,
+  debug,
+  info,
+  warn,
+  error
+} from "@rasla/express-logify";
+
+// Configure once at startup
+initializeLogger({
+  level: "debug",
+  file: true,
+  filePath: "./logs/app.log"
+});
+
+// Use anywhere in your code
+debug("This is a debug message");
+info("This is an info message");
+warn("This is a warning message");
+error("This is an error message");
+| `{statusCode}` | HTTP status | `200`, `404` |
+| `{duration}` | Request time | `123ms` |
+| `{ip}` | Client IP | `127.0.0.1` |
+
+## 🎯 Examples
+
+Check out the examples in each package:
+- [Elysia.js Examples](./packages/elysia-js/examples)
+- [Express.js Examples](./packages/express/examples)
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 🎨 Configuration
 
@@ -91,25 +146,26 @@ Both packages support the same configuration options:
   // Custom format (see Format Tokens below)
   format: '[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms{ip}',
 }
-```
+````
 
 ## 📝 Format Tokens
 
 Customize your log format using these tokens:
 
-| Token | Description | Example |
-|-------|-------------|---------|
-| `{timestamp}` | ISO timestamp | `2024-12-03T17:48:54.721Z` |
-| `{level}` | Log level | `INFO`, `ERROR` |
-| `{method}` | HTTP method | `GET`, `POST` |
-| `{path}` | Request path | `/api/users` |
-| `{statusCode}` | HTTP status | `200`, `404` |
-| `{duration}` | Request time | `123ms` |
-| `{ip}` | Client IP | `127.0.0.1` |
+| Token          | Description   | Example                    |
+| -------------- | ------------- | -------------------------- |
+| `{timestamp}`  | ISO timestamp | `2024-12-03T17:48:54.721Z` |
+| `{level}`      | Log level     | `INFO`, `ERROR`            |
+| `{method}`     | HTTP method   | `GET`, `POST`              |
+| `{path}`       | Request path  | `/api/users`               |
+| `{statusCode}` | HTTP status   | `200`, `404`               |
+| `{duration}`   | Request time  | `123ms`                    |
+| `{ip}`         | Client IP     | `127.0.0.1`                |
 
 ## 🎯 Examples
 
 Check out the examples in each package:
+
 - [Elysia.js Examples](./packages/elysia-js/examples)
 - [Express.js Examples](./packages/express/examples)
 

@@ -1,9 +1,10 @@
 import { Elysia } from "elysia";
-import { Logger } from "./logger";
+import { getLogger, initializeLogger } from "./global-logger";
 import { LoggerOptions } from "./types";
 
 export function logger(options: LoggerOptions = {}) {
-  const logger = new Logger(options);
+  // Initialize the global logger only if options contain meaningful configuration
+  const loggerInstance = Object.keys(options).length > 0 ? initializeLogger(options) : getLogger();
 
   return new Elysia()
     .derive(
@@ -29,7 +30,7 @@ export function logger(options: LoggerOptions = {}) {
 
       const duration = Date.now() - (ctx.startTime || Date.now());
 
-      logger.info({
+      loggerInstance.info({
         method: ctx.request.method,
         path: url.pathname,
         statusCode: 200,
@@ -42,13 +43,19 @@ export function logger(options: LoggerOptions = {}) {
       const url = new URL(request.url);
       const duration = Date.now() - (startTime || Date.now()) || 1;
 
-      logger.error({
+      // Create a safe error message as error might not always have a message property
+      const errorMessage =
+        typeof error === "object" && error !== null && "message" in error
+          ? String(error.message)
+          : String(error);
+
+      loggerInstance.error({
         method: request.method,
         path: url.pathname,
         statusCode: 500,
         duration,
         ip: ip,
-        message: error.message,
+        message: errorMessage,
       });
     });
 }

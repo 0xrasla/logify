@@ -14,6 +14,8 @@ A beautiful, fast, and type-safe logging middleware for Express.js applications.
 - 🎯 Path-based request filtering
 - 🔄 Automatic log directory creation
 - 🎛️ Fully customizable log formats
+- 🌍 Global logger instance for application-wide logging
+- 📝 Convenient logging functions: debug(), info(), warn(), and error()
 
 ## 📦 Installation
 
@@ -42,6 +44,56 @@ app.listen(3000);
 Output:
 ```
 [2024-12-03T17:48:54.721Z] INFO [GET  ] / - 200 1ms
+```
+
+## 🌍 Global Logger
+
+Logify provides a global logger that can be accessed from anywhere in your application:
+
+```typescript
+import express from 'express';
+import { 
+  logger, 
+  initializeLogger, 
+  debug, 
+  info, 
+  warn, 
+  error 
+} from '@rasla/express-logify';
+
+// Configure the global logger once at startup
+initializeLogger({
+  level: 'debug',
+  file: true,
+  filePath: './logs/app.log'
+});
+
+// Now you can use logging functions anywhere in your code
+const app = express();
+
+app.use(logger()); // Uses the global logger configuration
+
+app.get('/', (req, res) => {
+  debug('Processing root request'); // Debug log
+  res.send('Hello World!');
+});
+
+app.get('/users', (req, res) => {
+  info('Fetching users'); // Info log
+  res.json(['Alice', 'Bob']);
+});
+
+app.post('/users', express.json(), (req, res) => {
+  warn('User validation skipped'); // Warning log
+  res.json({ created: true });
+});
+
+app.get('/error', (req, res, next) => {
+  error('Critical error occurred'); // Error log
+  next(new Error('Something went wrong'));
+});
+
+app.listen(3000);
 ```
 
 ## 🎨 Configuration
@@ -113,32 +165,90 @@ app.get('/users/:id', (req, res) => res.json({ id: req.params.id }));
 app.listen(3000);
 ```
 
+### Using Global Logger Functions
+
+```typescript
+import express from 'express';
+import { 
+  logger, 
+  initializeLogger, 
+  debug, 
+  info, 
+  warn, 
+  error 
+} from '@rasla/express-logify';
+
+// Initialize once with your preferred configuration
+initializeLogger({
+  level: 'debug',
+  console: true,
+  file: true,
+  filePath: './logs/app.log'
+});
+
+// Then use anywhere in your application
+function userService() {
+  debug('User service initialized');
+  
+  return {
+    getUser(id: string) {
+      info(`Getting user with ID: ${id}`);
+      // Implementation...
+      return { id };
+    },
+    createUser(data: any) {
+      if (!data.email) {
+        warn('Creating user without email');
+      }
+      // Implementation...
+      return { created: true };
+    },
+    deleteUser(id: string) {
+      error(`User deletion requested: ${id}`);
+      // Implementation...
+      return { deleted: true };
+    }
+  };
+}
+
+const app = express();
+app.use(logger());
+app.use(express.json());
+
+app.get('/users/:id', (req, res) => {
+  const service = userService();
+  const user = service.getUser(req.params.id);
+  res.json(user);
+});
+
+app.post('/users', (req, res) => {
+  const service = userService();
+  const result = service.createUser(req.body);
+  res.json(result);
+});
+
+app.listen(3000);
+```
+
 ### Production Setup
 
 ```typescript
 import express from 'express';
-import { logger } from '@rasla/express-logify';
+import { logger, initializeLogger } from '@rasla/express-logify';
+
+// Configure global logger for production
+initializeLogger({
+  level: 'info', // Only info and above in production
+  file: true,
+  filePath: './logs/app.log',
+  includeIp: true,
+  format: '[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms - {ip}',
+});
 
 const app = express();
 
-// Production configuration
-app.use(
-  logger({
-    // Enable file logging
-    file: true,
-    filePath: './logs/app.log',
-
-    // Include IP for security
-    includeIp: true,
-
-    // Skip health checks
-    skip: ['/health'],
-
-    // Detailed format
-    format:
-      '[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms - {ip}',
-  })
-);
+// Use the configured logger middleware
+app.use(logger({ skip: ['/health'] }));
 
 // Routes
 app
@@ -154,19 +264,24 @@ app.listen(3000);
 
 ```typescript
 import express from 'express';
-import { logger } from '@rasla/express-logify';
+import { logger, error } from '@rasla/express-logify';
 
 const app = express();
 
 app.use(logger({ level: 'debug' }));
 
-app.get('/error', (req, res) => {
-  throw new Error('Something went wrong');
+app.get('/error', (req, res, next) => {
+  error('Custom error before exception');
+  next(new Error('Something went wrong'));
+});
+
+// Error handling middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  error(`Error handled: ${err.message}`);
+  res.status(500).json({ error: err.message });
 });
 
 app.listen(3000);
-
-// Output: [2024-12-03T17:48:54.721Z] ERROR [GET  ] /error - 500 1ms
 ```
 
 ## 🤝 Contributing
