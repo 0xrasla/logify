@@ -3,8 +3,8 @@ import { getLogger, initializeLogger } from "./global-logger";
 import { LoggerOptions } from "./types";
 
 export function logger(options: LoggerOptions = {}) {
-  // Initialize the global logger if it's being configured
-  const loggerInstance = options ? initializeLogger(options) : getLogger();
+  // Initialize the global logger only if options contain meaningful configuration
+  const loggerInstance = Object.keys(options).length > 0 ? initializeLogger(options) : getLogger();
 
   return new Elysia()
     .derive(

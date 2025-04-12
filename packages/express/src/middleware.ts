@@ -4,7 +4,9 @@ import { LoggerOptions } from "./types";
 
 export function logger(options: LoggerOptions = {}) {
   // Initialize the global logger if it's being configured
-  const loggerInstance = options ? initializeLogger(options) : getLogger();
+  const loggerInstance = Object.keys(options).length > 0 && !getLogger().isInitialized
+    ? initializeLogger(options)
+    : getLogger();
 
   return (req: Request, res: Response, next: NextFunction) => {
     // Skip logging for specified paths
