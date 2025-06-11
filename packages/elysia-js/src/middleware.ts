@@ -4,7 +4,8 @@ import { LoggerOptions } from "./types";
 
 export function logger(options: LoggerOptions = {}) {
   // Initialize the global logger only if options contain meaningful configuration
-  const loggerInstance = Object.keys(options).length > 0 ? initializeLogger(options) : getLogger();
+  const loggerInstance =
+    Object.keys(options).length > 0 ? initializeLogger(options) : getLogger();
 
   return new Elysia()
     .derive(
@@ -20,7 +21,7 @@ export function logger(options: LoggerOptions = {}) {
             headers["x-client-ip"] ||
             "",
         };
-      },
+      }
     )
     .onAfterHandle({ as: "global" }, (ctx) => {
       const url = new URL(ctx.request.url);
