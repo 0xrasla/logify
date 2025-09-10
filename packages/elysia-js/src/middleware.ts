@@ -34,13 +34,13 @@ export function logger(options: LoggerOptions = {}) {
       loggerInstance.info({
         method: ctx.request.method,
         path: url.pathname,
-        statusCode: 200,
+        statusCode: typeof ctx.set.status === "number" ? ctx.set.status : 200,
         duration,
         ip: ctx.ip,
         message: `${ctx.request.method} ${url.pathname}`,
       });
     })
-    .onError(({ error, request, ip, startTime }) => {
+    .onError(({ error, request, ip, startTime, set }) => {
       const url = new URL(request.url);
       const duration = Date.now() - (startTime || Date.now()) || 1;
 
@@ -53,7 +53,7 @@ export function logger(options: LoggerOptions = {}) {
       loggerInstance.error({
         method: request.method,
         path: url.pathname,
-        statusCode: 500,
+        statusCode: typeof set.status === "number" ? set.status : 500,
         duration,
         ip: ip,
         message: errorMessage,

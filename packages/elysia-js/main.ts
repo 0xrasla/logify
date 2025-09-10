@@ -63,6 +63,19 @@ app.get("/performance-issue", () => {
   return `Intensive operation completed in ${duration}ms`;
 });
 
+app.get("/custom", () => {
+  // You can also pass objects with custom fields
+  console.log("Custom log entry started");
+  info({
+    message: "Custom log entry",
+    method: "CUSTOM",
+    statusCode: 200,
+    duration: 150,
+  });
+  console.log("Custom log entry recorded");
+  return "Custom log entry recorded";
+});
+
 app.listen(3000, () => {
   console.log(
     `🦊 Server is running at ${app.server?.hostname}:${app.server?.port}`
