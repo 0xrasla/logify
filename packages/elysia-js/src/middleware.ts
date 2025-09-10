@@ -4,7 +4,8 @@ import { LoggerOptions } from "./types";
 
 export function logger(options: LoggerOptions = {}) {
   // Initialize the global logger only if options contain meaningful configuration
-  const loggerInstance = Object.keys(options).length > 0 ? initializeLogger(options) : getLogger();
+  const loggerInstance =
+    Object.keys(options).length > 0 ? initializeLogger(options) : getLogger();
 
   return new Elysia()
     .derive(
@@ -20,7 +21,7 @@ export function logger(options: LoggerOptions = {}) {
             headers["x-client-ip"] ||
             "",
         };
-      },
+      }
     )
     .onAfterHandle({ as: "global" }, (ctx) => {
       const url = new URL(ctx.request.url);
@@ -33,13 +34,13 @@ export function logger(options: LoggerOptions = {}) {
       loggerInstance.info({
         method: ctx.request.method,
         path: url.pathname,
-        statusCode: 200,
+        statusCode: typeof ctx.set.status === "number" ? ctx.set.status : 200,
         duration,
         ip: ctx.ip,
         message: `${ctx.request.method} ${url.pathname}`,
       });
     })
-    .onError(({ error, request, ip, startTime }) => {
+    .onError(({ error, request, ip, startTime, set }) => {
       const url = new URL(request.url);
       const duration = Date.now() - (startTime || Date.now()) || 1;
 
@@ -52,7 +53,7 @@ export function logger(options: LoggerOptions = {}) {
       loggerInstance.error({
         method: request.method,
         path: url.pathname,
-        statusCode: 500,
+        statusCode: typeof set.status === "number" ? set.status : 500,
         duration,
         ip: ip,
         message: errorMessage,
