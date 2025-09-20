@@ -7,16 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 ## [5.1.1] - 2025-09-20
 
 ### Added
+
 - New examples: `separate-http-global.ts` and `legacy-use-global.ts` demonstrating dual-format logging and legacy unified mode.
 
 ### Changed
+
 - Updated dependencies: bumped `elysia` to `^1.4.6` and refreshed dev tooling versions (`@typescript-eslint/*`, `@types/*`, `eslint`).
 - README expanded with sections referencing new examples and clarifying HTTP vs global logger usage.
 
 ### Internal
+
 - Minor docs polish and consistency improvements; no runtime API changes.
 
 ### Upgrade Notes
+
 - Safe patch release; no code changes required for users upgrading from 5.1.0.
 
 ## [5.1.0] - 2025-09-20
