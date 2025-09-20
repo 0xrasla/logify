@@ -1,11 +1,25 @@
 import { Elysia } from "elysia";
-import { getLogger, initializeLogger } from "./global-logger";
+import { getLogger } from "./global-logger";
+import { Logger } from "./logger";
 import { LoggerOptions } from "./types";
 
+/**
+ * HTTP logger middleware for Elysia.
+ *
+ * This now logs ONLY HTTP request/response cycles with its own (http) logger instance
+ * allowing the global logger (initialized via `initializeLogger`) to be used for
+ * application / business logs with a different format.
+ *
+ * To preserve previous behaviour (middleware configuring & using the global logger)
+ * pass `{ useGlobal: true }`.
+ */
 export function logger(options: LoggerOptions = {}) {
-  // Initialize the global logger only if options contain meaningful configuration
-  const loggerInstance =
-    Object.keys(options).length > 0 ? initializeLogger(options) : getLogger();
+  const useGlobal = (options as any).useGlobal === true;
+
+  // Decide which logger instance to use for HTTP logs
+  // - use global logger if explicitly requested
+  // - otherwise create a dedicated HTTP logger (does NOT overwrite the global one)
+  const httpLogger = useGlobal ? getLogger() : new Logger(options);
 
   return new Elysia()
     .derive(
@@ -14,7 +28,8 @@ export function logger(options: LoggerOptions = {}) {
       },
       ({ headers }) => {
         return {
-          startTime: Date.now(),
+          // High resolution start time for accurate duration measurement
+          startTime: performance.now(),
           ip:
             headers["x-forwarded-for"] ||
             headers["x-real-ip"] ||
@@ -28,10 +43,11 @@ export function logger(options: LoggerOptions = {}) {
       if (options.skip?.includes(url.pathname)) {
         return;
       }
+      const duration = Number(
+        (performance.now() - (ctx.startTime || performance.now())).toFixed(2)
+      );
 
-      const duration = Date.now() - (ctx.startTime || Date.now());
-
-      loggerInstance.info({
+      httpLogger.info({
         method: ctx.request.method,
         path: url.pathname,
         statusCode: typeof ctx.set.status === "number" ? ctx.set.status : 200,
@@ -42,7 +58,10 @@ export function logger(options: LoggerOptions = {}) {
     })
     .onError(({ error, request, ip, startTime, set }) => {
       const url = new URL(request.url);
-      const duration = Date.now() - (startTime || Date.now()) || 1;
+      const duration =
+        Number(
+          (performance.now() - (startTime || performance.now())).toFixed(2)
+        ) || 0.01;
 
       // Create a safe error message as error might not always have a message property
       const errorMessage =
@@ -50,7 +69,7 @@ export function logger(options: LoggerOptions = {}) {
           ? String(error.message)
           : String(error);
 
-      loggerInstance.error({
+      httpLogger.error({
         method: request.method,
         path: url.pathname,
         statusCode: typeof set.status === "number" ? set.status : 500,

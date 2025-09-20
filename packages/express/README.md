@@ -284,6 +284,18 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 app.listen(3000);
 ```
 
+### Separate HTTP vs Global Logger (New in v1.1.0)
+
+See: `examples/separate-http-global.ts`
+
+Demonstrates dual formatting: one for HTTP access logs and one for business logs via global logger.
+
+### Legacy Unified Logger (useGlobal)
+
+See: `examples/legacy-use-global.ts`
+
+Shows how to retain legacy behaviour where middleware and global logger share the same format.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -291,3 +303,42 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 MIT License - Created by [0xRasla](https://github.com/0xRasla)
+
+## 🔀 HTTP Logger vs Global Logger (v1.1.0+)
+
+From v1.1.0 the Express middleware creates its own dedicated HTTP logger instance by default. This lets you:
+
+- Use one format for HTTP access logs
+- Use a different format for your application / domain logs via the global logger
+
+Example:
+
+```ts
+import express from 'express';
+import { initializeLogger, logger, info } from '@rasla/express-logify';
+
+initializeLogger({
+  format: '[{timestamp}] {level}: {message}',
+  level: 'info'
+});
+
+const app = express();
+
+app.use(logger({
+  format: '[{timestamp}] {level} {method} {path} {statusCode} | Time: {duration}ms',
+  level: 'info'
+}));
+
+app.get('/', (req, res) => {
+  info('🚀 Express server started'); // Global logger format
+  res.send('Hello');
+});
+```
+
+To keep old behaviour (middleware configuring global logger) pass `useGlobal: true`:
+
+```ts
+app.use(logger({ format: '...', useGlobal: true }));
+```
+
+Durations now use `performance.now()` for more precise measurement of fast requests.

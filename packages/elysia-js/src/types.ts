@@ -13,6 +13,8 @@ export interface LoggerOptions {
   skip?: string[];
   /** Include IP address in logs (default: false) */
   includeIp?: boolean;
+  /** When true, middleware uses the global logger instead of creating a dedicated HTTP logger */
+  useGlobal?: boolean;
 }
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
@@ -34,6 +36,8 @@ export interface LogEntry {
   message?: string;
   /** IP address if available and enabled */
   ip?: string;
+  /** Internal flag to differentiate HTTP logs (not exposed) */
+  isHttp?: boolean;
 }
 
 export interface ILogger {

@@ -251,6 +251,18 @@ const app = new Elysia()
 // Custom log: [2024-12-03T17:48:54.720Z] ERROR Custom error before exception
 ```
 
+### Separate HTTP vs Global Logger (New in v5.1.0)
+
+See: `examples/separate-http-global.ts`
+
+Demonstrates using different formats: one for HTTP access logs and one for application logs.
+
+### Legacy Unified Logger (useGlobal)
+
+See: `examples/legacy-use-global.ts`
+
+Shows how to retain pre-v5.1.0 behaviour where middleware and global logs share the same logger & format.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
@@ -258,3 +270,45 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## 📄 License
 
 MIT License - Created by [0xRasla](https://github.com/0xRasla)
+
+## 🔀 HTTP Logger vs Global Logger (v5.1.0+)
+
+Starting from v5.1.0 the middleware creates its own dedicated HTTP logger instance by default. This lets you:
+
+- Use one format for HTTP access logs
+- Use a different format for your application / domain logs via the global logger
+
+Example:
+
+```ts
+import { Elysia } from "elysia";
+import { initializeLogger, logger, info } from "@rasla/logify";
+
+// Global logger for application messages
+initializeLogger({
+  format: "[{timestamp}] {level}: {message}",
+  level: "info",
+});
+
+const app = new Elysia()
+  .use(
+    logger({
+      // Dedicated HTTP log format
+      format:
+        "[{timestamp}] {level} {method} {path} {statusCode} | Time: {duration}ms",
+      level: "info",
+    })
+  )
+  .get("/", () => {
+    info("🚀 Elysia is running"); // Uses the global logger format
+    return "Hello";
+  });
+```
+
+If you want the old behaviour (middleware configuring & using the global logger), pass `useGlobal: true`:
+
+```ts
+app.use(logger({ format: "...", useGlobal: true }));
+```
+
+Performance measurement now uses `performance.now()` for higher precision; extremely fast requests will no longer appear as `0ms`.

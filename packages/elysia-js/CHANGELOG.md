@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.0] - 2025-09-20
+
+### Added
+
+- Separation of concerns: Middleware now creates its own HTTP logger instance by default so global logger (initialized via `initializeLogger`) can use a different format for application logs. Implements feature request [#6](https://github.com/0xrasla/logify/issues/6).
+- New option `useGlobal: true` to keep legacy behaviour where middleware uses the global logger.
+
+### Changed
+
+- HTTP request duration now measured with `performance.now()` for sub-millisecond precision and more reliable logging of very fast responses (previously could show `0ms`). Durations now formatted to 2 decimal places.
+
+### Notes
+
+- If you previously passed formatting options to `logger()` expecting them to update the global logger, you should now call `initializeLogger()` explicitly or pass `useGlobal: true`.
+
 ## [5.0.1] - 2025-09-10
 
 ### Fixed
@@ -25,3 +40,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 [5.0.1]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.0.1
 [5.0.0]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.0.0
 [4.0.0]: https://github.com/0xrasla/logify/releases/tag/elysia-v4.0.0
+[5.1.0]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.1.0

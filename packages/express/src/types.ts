@@ -9,6 +9,8 @@ export interface LogEntry {
   duration: number;
   message: string;
   ip?: string;
+  /** Internal flag to differentiate HTTP logs */
+  isHttp?: boolean;
 }
 
 export interface LoggerOptions {
@@ -26,6 +28,8 @@ export interface LoggerOptions {
   includeIp?: boolean;
   /** Custom log format */
   format?: string;
+  /** When true, middleware uses the global logger instead of creating a dedicated HTTP logger */
+  useGlobal?: boolean;
 }
 
 export interface ILogger {

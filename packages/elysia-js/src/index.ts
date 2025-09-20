@@ -1,7 +1,3 @@
-export * from "./logger";
-export * from "./middleware";
-export * from "./types";
-// Export global logger functions
 export {
   debug,
   error,
@@ -10,3 +6,6 @@ export {
   initializeLogger,
   warn,
 } from "./global-logger";
+export * from "./logger";
+export * from "./middleware";
+export * from "./types";

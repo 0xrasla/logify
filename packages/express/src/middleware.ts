@@ -1,12 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import { getLogger, initializeLogger } from "./global-logger";
+import { getLogger } from "./global-logger";
+import { Logger } from "./logger";
 import { LoggerOptions } from "./types";
 
 export function logger(options: LoggerOptions = {}) {
-  // Initialize the global logger if it's being configured
-  const loggerInstance = Object.keys(options).length > 0 && !getLogger().isInitialized
-    ? initializeLogger(options)
-    : getLogger();
+  const useGlobal = (options as any).useGlobal === true;
+  const httpLogger = useGlobal ? getLogger() : new Logger(options);
 
   return (req: Request, res: Response, next: NextFunction) => {
     // Skip logging for specified paths
@@ -14,7 +13,7 @@ export function logger(options: LoggerOptions = {}) {
       return next();
     }
 
-    const startTime = Date.now();
+  const startTime = performance.now();
 
     // Get IP address
     const ip =
@@ -31,9 +30,9 @@ export function logger(options: LoggerOptions = {}) {
       encoding?: string | (() => void),
       cb?: () => void
     ) {
-      const duration = Date.now() - startTime;
+      const duration = Number((performance.now() - startTime).toFixed(2));
 
-      loggerInstance.info({
+      httpLogger.info({
         method: req.method,
         path: req.path,
         statusCode: res.statusCode,
@@ -52,9 +51,9 @@ export function logger(options: LoggerOptions = {}) {
 
     // Error handling
     res.on("error", (error: Error) => {
-      const duration = Date.now() - startTime;
+      const duration = Number((performance.now() - startTime).toFixed(2));
 
-      loggerInstance.error({
+      httpLogger.error({
         method: req.method,
         path: req.path,
         statusCode: res.statusCode,
