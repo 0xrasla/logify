@@ -1,6 +1,6 @@
 {
   "name": "@rasla/logify",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "description": "A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applications",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
