@@ -110,6 +110,7 @@ error("This is an error message");
 | `{statusCode}` | HTTP status | `200`, `404` |
 | `{duration}` | Request time | `123ms` |
 | `{ip}` | Client IP | `127.0.0.1` |
+````
 
 ## 🎯 Examples
 
