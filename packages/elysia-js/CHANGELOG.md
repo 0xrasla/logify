@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.2] - 2025-12-02
+
+### Fixed
+
+- Fixed incorrect status code logging where responses with `status(500, ...)` were logged as 200. Changed from `onAfterHandle` to `onAfterResponse` hook to capture the finalized response status code. Fixes [#9](https://github.com/0xrasla/logify/issues/9).
+
+### Changed
+
+- HTTP logging now uses appropriate log level based on status code: `warn` for 4xx/5xx responses, `info` for successful responses.
+- Added `errorLogged` flag to prevent double logging when errors are handled by the `onError` hook.
+
 ## [5.1.1] - 2025-09-20
 
 ### Added
@@ -56,6 +67,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 - Previous stable release prior to v5 feature set.
 
+[5.1.2]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.1.2
 [5.0.1]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.0.1
 [5.0.0]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.0.0
 [4.0.0]: https://github.com/0xrasla/logify/releases/tag/elysia-v4.0.0

@@ -35,10 +35,17 @@ export function logger(options: LoggerOptions = {}) {
             headers["x-real-ip"] ||
             headers["x-client-ip"] ||
             "",
+          // Track if error handler was triggered to avoid double logging
+          errorLogged: false,
         };
       }
     )
-    .onAfterHandle({ as: "global" }, (ctx) => {
+    .onAfterResponse({ as: "global" }, (ctx) => {
+      // Skip if already logged by error handler
+      if ((ctx as any).errorLogged) {
+        return;
+      }
+
       const url = new URL(ctx.request.url);
       if (options.skip?.includes(url.pathname)) {
         return;
@@ -47,16 +54,26 @@ export function logger(options: LoggerOptions = {}) {
         (performance.now() - (ctx.startTime || performance.now())).toFixed(2)
       );
 
-      httpLogger.info({
+      // Get status code from ctx.set.status - this is now accurate in onAfterResponse
+      const statusCode =
+        typeof ctx.set.status === "number" ? ctx.set.status : 200;
+
+      // Use appropriate log level based on status code
+      const logMethod = statusCode >= 400 ? "warn" : "info";
+
+      httpLogger[logMethod]({
         method: ctx.request.method,
         path: url.pathname,
-        statusCode: typeof ctx.set.status === "number" ? ctx.set.status : 200,
+        statusCode,
         duration,
         ip: ctx.ip,
         message: `${ctx.request.method} ${url.pathname}`,
       });
     })
-    .onError(({ error, request, ip, startTime, set }) => {
+    .onError(({ error, request, ip, startTime, set, ...ctx }) => {
+      // Mark error as logged to prevent double logging in onAfterResponse
+      (ctx as any).errorLogged = true;
+
       const url = new URL(request.url);
       const duration =
         Number(

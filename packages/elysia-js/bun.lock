@@ -1,20 +1,21 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "@rasla/logify",
       "dependencies": {
-        "chalk": "latest",
-        "elysia": "latest",
+        "chalk": "^5.6.2",
+        "elysia": "^1.4.6",
       },
       "devDependencies": {
-        "@types/bun": "latest",
-        "@types/node": "latest",
-        "@typescript-eslint/eslint-plugin": "latest",
-        "@typescript-eslint/parser": "latest",
-        "eslint": "latest",
-        "prettier": "latest",
-        "typescript": "latest",
+        "@types/bun": "^1.2.22",
+        "@types/node": "^24.5.2",
+        "@typescript-eslint/eslint-plugin": "^8.44.0",
+        "@typescript-eslint/parser": "^8.44.0",
+        "eslint": "^9.36.0",
+        "prettier": "^3.6.2",
+        "typescript": "^5.9.2",
       },
       "peerDependencies": {
         "elysia": ">=0.7.0",
