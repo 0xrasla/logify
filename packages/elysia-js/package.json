@@ -20,7 +20,8 @@
     "prepublishOnly": "bun run build",
     "format": "prettier --write \"src/**/*.ts\" \"examples/**/*.ts\"",
     "lint": "eslint \"src/**/*.ts\" --fix",
-    "test": "bun test"
+    "test": "bun test",
+    "bundle": "tar -czf logify-elysia-v5.1.2.tar.gz dist/ package.json README.md LICENSE.md"
   },
   "keywords": [
     "elysia",
