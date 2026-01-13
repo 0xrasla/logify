@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.3] - 2026-01-13
+
+### Fixed
+
+- Fixed TypeScript type compatibility issue with Elysia ^1.4.21 and newer versions. Updated Elysia dependency from `^1.4.6` to `^1.4.21` to resolve `TS2769` type errors caused by adapter type mismatches between different Elysia versions. Fixes [#10](https://github.com/0xrasla/logify/issues/10).
+
+### Changed
+
+- Updated `elysia` dependency to `^1.4.21` for better type safety and compatibility with latest Elysia releases.
+
+### Upgrade Notes
+
+- Safe patch release. Users experiencing TypeScript errors after upgrading to Elysia 1.4.21+ should update to this version.
+
 ## [5.1.2] - 2025-12-02
 
 ### Fixed
