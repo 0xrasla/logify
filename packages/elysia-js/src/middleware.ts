@@ -45,14 +45,14 @@ export function logger(options: LoggerOptions = {}) {
   return new Elysia()
     .derive(
       {
-        as: "scoped",
+        as: "global",
       },
       ({ headers }) => {
         return {
           // High resolution start time for accurate duration measurement
           startTime: performance.now(),
           // Use helper function to resolve IP from custom headers
-          ip: getIp(headers as Record<string, string | undefined>),
+          clientIp: getIp(headers as Record<string, string | undefined>),
           // Track if error handler was triggered to avoid double logging
           errorLogged: false,
         };
@@ -79,16 +79,20 @@ export function logger(options: LoggerOptions = {}) {
       // Use appropriate log level based on status code
       const logMethod = statusCode >= 400 ? "warn" : "info";
 
+      // Use our derived clientIp (from custom headers), or fallback to extracting again
+      const headers = Object.fromEntries(ctx.request.headers.entries());
+      const ip = (ctx as any).clientIp || getIp(headers);
+
       httpLogger[logMethod]({
         method: ctx.request.method,
         path: url.pathname,
         statusCode,
         duration,
-        ip: ctx.ip,
+        ip,
         message: `${ctx.request.method} ${url.pathname}`,
       });
     })
-    .onError(({ error, request, startTime, set, ...ctx }) => {
+    .onError(({ error, request, startTime, set, clientIp, ...ctx }) => {
       // Mark error as logged to prevent double logging in onAfterResponse
       (ctx as any).errorLogged = true;
 
@@ -104,16 +108,16 @@ export function logger(options: LoggerOptions = {}) {
           ? String(error.message)
           : String(error);
 
-      // Get IP from request headers using helper function (ctx.ip may be undefined in error handlers)
+      // Use our derived clientIp, or fallback to extracting from headers
       const headers = Object.fromEntries(request.headers.entries());
-      const clientIp = getIp(headers);
+      const ip = clientIp || getIp(headers);
 
       httpLogger.error({
         method: request.method,
         path: url.pathname,
         statusCode: typeof set.status === "number" ? set.status : 500,
         duration,
-        ip: clientIp,
+        ip,
         message: errorMessage,
       });
     });
