@@ -1,5 +1,12 @@
+import {
+  debug,
+  error,
+  info,
+  initializeLogger,
+  logger,
+  warn,
+} from "@rasla/logify";
 import { Elysia } from "elysia";
-import { debug, error, info, initializeLogger, logger, warn } from "../src";
 
 // Initialize the global logger with custom options
 initializeLogger({
@@ -50,5 +57,5 @@ const app = new Elysia()
   .listen(3000);
 
 console.log(
-  `🦊 Server is running at ${app.server?.hostname}:${app.server?.port}`
+  `🦊 Server is running at ${app.server?.hostname}:${app.server?.port}`,
 );

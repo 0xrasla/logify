@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.0] - 2026-02-04
+
+### Added
+
+- **Custom IP Headers**: New `ipHeaders` option allows specifying custom IP header priority order. Useful for proxies like Cloudflare (`cf-connecting-ip`), nginx, and other reverse proxies. Default headers: `['x-forwarded-for', 'x-real-ip', 'x-client-ip']`. Fixes [#12](https://github.com/0xrasla/logify/issues/12).
+
+### Fixed
+
+- **Missing IP on 404/Errors**: Fixed issue where client IP was undefined in error handler logs (including 404 "Route not found" errors). The error handler now properly resolves the IP from request headers using the configurable `ipHeaders` option. Fixes [#12](https://github.com/0xrasla/logify/issues/12).
+- **useGlobal Bug**: Fixed `useGlobal: true` not honoring custom logger options. Previously, `getLogger()` returned a logger with default values instead of using the configured options. Now correctly calls `initializeLogger(options)` when `useGlobal` is enabled. Fixes [#12](https://github.com/0xrasla/logify/issues/12).
+
+### Changed
+
+- IP resolution now handles comma-separated values in `x-forwarded-for` header by extracting the first (client) IP.
+- Improved code organization with dedicated `getIp()` helper function for consistent IP resolution across handlers.
+
+### Example Usage
+
+```typescript
+import { Elysia } from "elysia";
+import { logger } from "@rasla/logify";
+
+const app = new Elysia()
+  .use(
+    logger({
+      includeIp: true,
+      ipHeaders: ["cf-connecting-ip", "x-real-ip", "x-forwarded-for"], // Cloudflare priority
+    }),
+  )
+  .listen(3000);
+```
+
 ## [5.1.3] - 2026-01-13
 
 ### Fixed
@@ -81,6 +113,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) 
 
 - Previous stable release prior to v5 feature set.
 
+[5.2.0]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.2.0
+[5.1.3]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.1.3
 [5.1.2]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.1.2
 [5.0.1]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.0.1
 [5.0.0]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.0.0

@@ -1,5 +1,5 @@
+import { info, initializeLogger, logger } from "@rasla/logify";
 import { Elysia } from "elysia";
-import { info, initializeLogger, logger } from "../src";
 
 // Global logger configuration for application/business logs ONLY
 initializeLogger({
@@ -14,7 +14,7 @@ const app = new Elysia()
       format:
         "[{timestamp}] {level} {method} {path} {statusCode} | Time: {duration}ms",
       level: "info",
-    })
+    }),
   )
   .get("/", () => {
     // This log is produced by the GLOBAL logger (different format)
@@ -28,5 +28,5 @@ const app = new Elysia()
   .listen(3000);
 
 console.log(
-  `HTTP logger vs Global logger example running on :${app.server?.port}`
+  `HTTP logger vs Global logger example running on :${app.server?.port}`,
 );

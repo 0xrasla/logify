@@ -1,5 +1,5 @@
+import { info, logger } from "@rasla/logify";
 import { Elysia } from "elysia";
-import { info, logger } from "../src";
 
 // Configure ONLY via middleware (legacy style) by passing useGlobal: true
 // This will cause the middleware to use the global logger rather than creating a dedicated HTTP logger.
@@ -11,7 +11,7 @@ const app = new Elysia()
       format:
         "[{timestamp}] {level} {method} {path} {statusCode} {duration}ms :: {message}",
       level: "debug",
-    })
+    }),
   )
   .get("/", () => {
     info("This log shares the same format as HTTP logs");

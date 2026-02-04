@@ -1,5 +1,5 @@
-import { Elysia } from "elysia";
 import { logger } from "@rasla/logify";
+import { Elysia } from "elysia";
 
 // Advanced usage with custom configuration
 const app = new Elysia()

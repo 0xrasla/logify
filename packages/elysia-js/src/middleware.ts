@@ -1,5 +1,5 @@
 import { Elysia } from "elysia";
-import { getLogger } from "./global-logger";
+import { initializeLogger } from "./global-logger";
 import { Logger } from "./logger";
 import { LoggerOptions } from "./types";
 
@@ -16,10 +16,31 @@ import { LoggerOptions } from "./types";
 export function logger(options: LoggerOptions = {}) {
   const useGlobal = (options as any).useGlobal === true;
 
+  // Default IP headers to check (in priority order)
+  const defaultIpHeaders = ["x-forwarded-for", "x-real-ip", "x-client-ip"];
+  const ipHeaders = options.ipHeaders || defaultIpHeaders;
+
+  /**
+   * Helper function to resolve client IP from request headers.
+   * Checks custom headers in priority order, falls back to empty string.
+   */
+  const getIp = (headers: Record<string, string | undefined>): string => {
+    for (const header of ipHeaders) {
+      const value = headers[header.toLowerCase()];
+      if (value) {
+        // x-forwarded-for may contain comma-separated IPs, take the first one
+        return value.split(",")[0].trim();
+      }
+    }
+    return "";
+  };
+
   // Decide which logger instance to use for HTTP logs
-  // - use global logger if explicitly requested
+  // - use global logger if explicitly requested (and initialize it with options)
   // - otherwise create a dedicated HTTP logger (does NOT overwrite the global one)
-  const httpLogger = useGlobal ? getLogger() : new Logger(options);
+  const httpLogger = useGlobal
+    ? initializeLogger(options)
+    : new Logger(options);
 
   return new Elysia()
     .derive(
@@ -30,15 +51,12 @@ export function logger(options: LoggerOptions = {}) {
         return {
           // High resolution start time for accurate duration measurement
           startTime: performance.now(),
-          ip:
-            headers["x-forwarded-for"] ||
-            headers["x-real-ip"] ||
-            headers["x-client-ip"] ||
-            "",
+          // Use helper function to resolve IP from custom headers
+          ip: getIp(headers as Record<string, string | undefined>),
           // Track if error handler was triggered to avoid double logging
           errorLogged: false,
         };
-      }
+      },
     )
     .onAfterResponse({ as: "global" }, (ctx) => {
       // Skip if already logged by error handler
@@ -51,7 +69,7 @@ export function logger(options: LoggerOptions = {}) {
         return;
       }
       const duration = Number(
-        (performance.now() - (ctx.startTime || performance.now())).toFixed(2)
+        (performance.now() - (ctx.startTime || performance.now())).toFixed(2),
       );
 
       // Get status code from ctx.set.status - this is now accurate in onAfterResponse
@@ -70,14 +88,14 @@ export function logger(options: LoggerOptions = {}) {
         message: `${ctx.request.method} ${url.pathname}`,
       });
     })
-    .onError(({ error, request, ip, startTime, set, ...ctx }) => {
+    .onError(({ error, request, startTime, set, ...ctx }) => {
       // Mark error as logged to prevent double logging in onAfterResponse
       (ctx as any).errorLogged = true;
 
       const url = new URL(request.url);
       const duration =
         Number(
-          (performance.now() - (startTime || performance.now())).toFixed(2)
+          (performance.now() - (startTime || performance.now())).toFixed(2),
         ) || 0.01;
 
       // Create a safe error message as error might not always have a message property
@@ -86,12 +104,16 @@ export function logger(options: LoggerOptions = {}) {
           ? String(error.message)
           : String(error);
 
+      // Get IP from request headers using helper function (ctx.ip may be undefined in error handlers)
+      const headers = Object.fromEntries(request.headers.entries());
+      const clientIp = getIp(headers);
+
       httpLogger.error({
         method: request.method,
         path: url.pathname,
         statusCode: typeof set.status === "number" ? set.status : 500,
         duration,
-        ip: ip,
+        ip: clientIp,
         message: errorMessage,
       });
     });

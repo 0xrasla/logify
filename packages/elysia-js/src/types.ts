@@ -15,6 +15,12 @@ export interface LoggerOptions {
   includeIp?: boolean;
   /** When true, middleware uses the global logger instead of creating a dedicated HTTP logger */
   useGlobal?: boolean;
+  /**
+   * Custom IP headers to check in priority order.
+   * Useful for proxies like Cloudflare (cf-connecting-ip), nginx, etc.
+   * Default: ['x-forwarded-for', 'x-real-ip', 'x-client-ip']
+   */
+  ipHeaders?: string[];
 }
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
