@@ -1,9 +1,9 @@
 {
   "name": "@rasla/logify",
-  "version": "5.2.1",
+  "version": "5.2.2",
   "description": "A lightweight, flexible, and easy-to-use logging middleware for Elysia.js applications",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist",
@@ -21,7 +21,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"examples/**/*.ts\"",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "test": "bun test",
-    "bundle": "tar -czf logify-elysia-v5.1.2.tar.gz dist/ package.json README.md LICENSE.md"
+    "bundle": "tar -czf logify-elysia-v5.2.2.tar.gz dist/ package.json README.md LICENSE.md"
   },
   "keywords": [
     "elysia",

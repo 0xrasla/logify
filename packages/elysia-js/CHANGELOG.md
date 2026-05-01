@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.2] - 2026-05-01
+
+### Fixed
+
+- Corrected the published package manifest so the `module` field points to `dist/index.js`, which is the file actually produced and shipped by the build. Fixes [#13](https://github.com/0xrasla/logify/issues/13).
+- Updated the package bundle filename script to match the current patch release version.
+
 ## [5.2.1] - 2026-02-04
 
 ### Fixed
@@ -125,6 +132,7 @@ const app = new Elysia()
 
 - Previous stable release prior to v5 feature set.
 
+[5.2.2]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.2.2
 [5.2.1]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.2.1
 [5.2.0]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.2.0
 [5.1.3]: https://github.com/0xrasla/logify/releases/tag/elysia-v5.1.3
