@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- SEO Meta Tags -->
+  <title>Logify — Beautiful Elysia.js Logging Middleware</title>
+  <meta name="description" content="A beautiful, fast, and type-safe logging middleware for Elysia.js. Colorized terminal logs, custom formatting, path filtering, and automatic file logging.">
+  <meta name="keywords" content="elysia, logger, middleware, logging, bun, typescript, logify, console log, file log">
+  <meta name="author" content="0xRasla">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Logify — Beautiful Elysia.js Logging Middleware">
+  <meta property="og:description" content="A beautiful, fast, and type-safe logging middleware for Elysia.js applications.">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:title" content="Logify — Beautiful Elysia.js Logging Middleware">
+  <meta property="twitter:description" content="A beautiful, fast, and type-safe logging middleware for Elysia.js applications.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='80' height='80' x='10' y='10' fill='%231c1c1c' stroke='%23383838' stroke-width='4'/%3E%3Ctext x='50%25' y='58%25' font-family='serif' font-weight='700' font-size='42' fill='%23e5e5e5' dominant-baseline='middle' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+
+  <!-- Typography: EB Garamond (Serif) & JetBrains Mono (Monospace) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Design Tokens - Charcoal Black & Editorial Minimalist */
+    :root {
+      --font-serif: 'EB Garamond', serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Charcoal Palette */
+      --bg-base: #121212;
+      --bg-surface: #181818;
+      --bg-card: #1c1c1c;
+      --bg-card-hover: #222222;
+      
+      --accent-primary: #818cf8; /* Soft Indigo */
+      --accent-primary-rgb: 129, 140, 248;
+      --accent-secondary: #2dd4bf; /* Soft Teal */
+      --accent-secondary-rgb: 45, 212, 191;
+      
+      --border-color: #282828;
+      --border-hover: #444444;
+      
+      --text-primary: #e5e5e5;
+      --text-secondary: #a3a3a3;
+      --text-muted: #666666;
+
+      /* Colorized Terminal Streams */
+      --term-green: #34d399;
+      --term-cyan: #38bdf8;
+      --term-yellow: #fbbf24;
+      --term-red: #f87171;
+      --term-magenta: #c084fc;
+      --term-gray: #52525b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+      border-radius: 0 !important; /* STRICT 0 border-radius design! */
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-serif);
+      font-size: 1.125rem;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scrollbar Style */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-base);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #282828;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #383838;
+    }
+
+    /* Layout & Containers */
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Navigation */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(18, 18, 18, 0.9);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 100;
+      transition: all 0.2s ease;
+    }
+
+    .nav-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 4.5rem;
+    }
+
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 1.35rem;
+      transition: transform 0.2s ease;
+    }
+
+    .logo-wrapper:hover {
+      transform: translateY(-1px);
+    }
+
+    .logo-icon {
+      width: 2.25rem;
+      height: 2.25rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-secondary);
+    }
+
+    .logo-text {
+      font-family: var(--font-serif);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-badge {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 0.15rem 0.4rem;
+      font-weight: 500;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-family: var(--font-mono);
+      transition: color 0.2s ease;
+    }
+
+    nav a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Live Header Repo Statistics */
+    .nav-stats-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .nav-stat-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      height: 2.25rem;
+      padding: 0 0.75rem;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .nav-stat-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border-hover);
+      background: var(--bg-card-hover);
+    }
+
+    .stat-label {
+      font-weight: 500;
+    }
+
+    .stat-value {
+      color: var(--accent-secondary);
+      font-weight: 600;
+      border-left: 1px solid var(--border-color);
+      padding-left: 0.45rem;
+      margin-left: 0.1rem;
+    }
+
+    /* Robust explicit CSS selectors to make sure Lucide icons render perfectly */
+    svg {
+      width: 1rem;
+      height: 1rem;
+      stroke-width: 2px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    header svg, .nav-stat-btn svg {
+      width: 0.95rem;
+      height: 0.95rem;
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      padding-top: 10rem;
+      padding-bottom: 6rem;
+      display: grid;
+      grid-template-columns: 1.14fr 0.86fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 0.3rem 0.75rem;
+    }
+
+    .badge-pill i, .badge-pill svg {
+      color: var(--accent-secondary);
+    }
+
+    .badge-pill.downloads {
+      border-color: var(--accent-primary);
+      background: rgba(var(--accent-primary-rgb), 0.05);
+      color: var(--text-primary);
+    }
+
+    .hero-title {
+      font-size: 3.75rem;
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+
+    .gradient-text {
+      color: var(--accent-primary);
+      border-bottom: 2px solid var(--accent-secondary);
+    }
+
+    .hero-subtitle {
+      font-size: 1.25rem;
+      color: var(--text-secondary);
+      max-width: 540px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--text-primary);
+      color: var(--bg-base);
+      border-color: var(--text-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--bg-base);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--border-hover);
+      background: var(--bg-card);
+    }
+
+    /* Terminal Setup & Tabs */
+    .install-box {
+      margin-top: 1.5rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      padding: 1.25rem;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .install-tabs {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .install-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .install-tab-btn.active {
+      border-color: var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    .install-command-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+
+    .install-prompt {
+      color: var(--accent-secondary);
+      user-select: none;
+      margin-right: 0.5rem;
+    }
+
+    .install-code {
+      color: var(--text-primary);
+      flex-grow: 1;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.35rem;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .copy-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-card);
+      border-color: var(--border-hover);
+    }
+
+    /* Live Server Log Simulator (Terminal UI) */
+    .terminal-container {
+      width: 100%;
+      height: 380px;
+      background: #141414;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .terminal-header {
+      background: #181818;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      user-select: none;
+    }
+
+    .terminal-dots {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .terminal-dot {
+      width: 0.65rem;
+      height: 0.65rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .dot-red { background: var(--term-red); }
+    .dot-yellow { background: var(--term-yellow); }
+    .dot-green { background: var(--term-green); }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .terminal-body {
+      padding: 1.25rem;
+      flex-grow: 1;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.6;
+      overflow-y: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 0.5rem;
+    }
+
+    .log-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      white-space: nowrap;
+      animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-time { color: var(--term-gray); }
+    .log-level-info { color: var(--term-cyan); font-weight: bold; }
+    .log-level-warn { color: var(--term-yellow); font-weight: bold; }
+    .log-level-error { color: var(--term-red); font-weight: bold; }
+    .log-level-debug { color: var(--term-magenta); font-weight: bold; }
+
+    .log-method-get { color: var(--term-green); font-weight: bold; }
+    .log-method-post { color: var(--term-cyan); font-weight: bold; }
+    .log-method-put { color: var(--term-yellow); font-weight: bold; }
+    .log-method-delete { color: var(--term-red); font-weight: bold; }
+
+    .log-path { color: var(--text-primary); }
+    .log-status-2xx { color: var(--term-green); }
+    .log-status-3xx { color: var(--term-cyan); }
+    .log-status-4xx { color: var(--term-yellow); }
+    .log-status-5xx { color: var(--term-red); }
+    .log-duration { color: var(--term-cyan); }
+    .log-ip { color: var(--term-gray); }
+
+    /* Features Grid */
+    .section-title-wrapper {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-tag {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent-primary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 8rem;
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 2.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon-box {
+      width: 2.75rem;
+      height: 2.75rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .feature-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .feature-desc {
+      color: var(--text-secondary);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    /* Standard Interactive Code Blocks */
+    .docs-section {
+      padding: 6rem 0;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .code-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .text-block {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .text-block h3 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .text-block p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .code-editor {
+      background: #141414;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .editor-header {
+      background: #181818;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .editor-filename {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .editor-body {
+      padding: 1.25rem;
+      overflow-x: auto;
+    }
+
+    .editor-pre {
+      margin: 0;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: #e5e5e5;
+    }
+
+    /* Syntax Highlighting */
+    .kw-import { color: #f87171; }
+    .kw-keyword { color: #f87171; }
+    .kw-const { color: #60a5fa; }
+    .kw-str { color: #34d399; }
+    .kw-num { color: #fbbf24; }
+    .kw-comment { color: var(--term-gray); }
+    .kw-func { color: #c084fc; }
+
+    /* Configuration & Interactive Playground Grid */
+    .playground-section {
+      background: linear-gradient(to bottom, #121212, #161616);
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 3.5rem;
+      align-items: start;
+    }
+
+    .playground-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 2.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .playground-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .playground-title i, .playground-title svg {
+      color: var(--accent-secondary);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-label {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+
+    .format-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .format-input {
+      width: 100%;
+      background: #141414;
+      border: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      transition: all 0.15s ease;
+    }
+
+    .format-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .format-input-reset {
+      position: absolute;
+      right: 0.75rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      transition: color 0.15s ease;
+    }
+
+    .format-input-reset:hover {
+      color: var(--text-primary);
+    }
+
+    .token-pills-label {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .token-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .token-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .token-pill:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+    }
+
+    .playground-preview-terminal {
+      background: #141414;
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    .preview-header {
+      background: #181818;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.5rem 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .preview-body {
+      padding: 1rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      min-height: 110px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      overflow-x: auto;
+    }
+
+    /* Format Tokens Table */
+    .table-section {
+      padding-bottom: 8rem;
+    }
+
+    .table-wrapper {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      background: var(--bg-surface);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td {
+      font-size: 1.05rem;
+      color: var(--text-secondary);
+    }
+
+    .token-name {
+      font-family: var(--font-mono);
+      color: var(--accent-secondary);
+      font-weight: 600;
+      font-size: 0.8rem;
+      background: rgba(var(--accent-secondary-rgb), 0.04);
+      padding: 0.15rem 0.4rem;
+      border: 1px solid rgba(var(--accent-secondary-rgb), 0.15);
+    }
+
+    .token-example {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--text-primary);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border-color);
+      padding: 4rem 0;
+      background: var(--bg-surface);
+    }
+
+    .footer-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .footer-copy {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .footer-links a {
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.8rem;
+      transition: color 0.15s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--text-primary);
+    }
+
+    /* Responsive Styling */
+    @media (max-width: 1024px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        padding-top: 8rem;
+        padding-bottom: 4rem;
+      }
+      .hero-content {
+        align-items: center;
+        text-align: center;
+      }
+      .hero-subtitle {
+        margin: 0 auto;
+      }
+      .hero-actions {
+        justify-content: center;
+      }
+      .install-box {
+        margin: 1.5rem auto 0 auto;
+      }
+      .code-grid, .config-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1.5rem;
+      }
+      .nav-links {
+        display: none;
+      }
+      .hero-title {
+        font-size: 2.75rem;
+      }
+      th, td {
+        padding: 1rem;
+      }
+      .footer-wrapper {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Navigation -->
+  <header>
+    <div class="container nav-wrapper">
+      <a href="#" class="logo-wrapper">
+        <div class="logo-icon">
+          <i data-lucide="terminal"></i>
+        </div>
+        <span class="logo-text">Logify</span>
+        <span class="logo-badge">v5.2.2</span>
+      </a>
+      
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#setup">Quick Start</a>
+        <a href="#global">Global Logger</a>
+        <a href="#configuration">Configuration</a>
+        <a href="#playground">Playground</a>
+      </nav>
+
+      <!-- Beautiful live API stats integrations for GitHub and NPM -->
+      <div class="nav-stats-wrapper">
+        <a href="https://github.com/0xRasla/logify" target="_blank" rel="noopener noreferrer" class="nav-stat-btn" id="github-stars-btn" aria-label="GitHub Repository">
+          <i data-lucide="github"></i>
+          <span class="stat-label">Star</span>
+          <span class="stat-value" id="github-stars-count">...</span>
+        </a>
+        <a href="https://www.npmjs.com/package/@rasla/logify" target="_blank" rel="noopener noreferrer" class="nav-stat-btn" id="npm-downloads-btn" aria-label="NPM Package">
+          <i data-lucide="box"></i>
+          <span class="stat-label">NPM</span>
+          <span class="stat-value" id="npm-downloads-count">...</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="container hero">
+    <div class="hero-content">
+      <div class="hero-badges">
+        <span class="badge-pill downloads">
+          <i data-lucide="sparkles"></i> <span id="hero-downloads-count">500+ downloads/week</span>
+        </span>
+        <span class="badge-pill">
+          <i data-lucide="box"></i> elysia-js v5.2.2
+        </span>
+        <span class="badge-pill">
+          <i data-lucide="shield"></i> MIT
+        </span>
+      </div>
+      
+      <h1 class="hero-title">
+        Beautiful logs for <br>
+        <span class="gradient-text">Elysia.js apps</span>
+      </h1>
+      
+      <p class="hero-subtitle">
+        An elegant, fast, and type-safe logging middleware for Elysia.js. Take absolute control of your request feeds with colorized square console streams and structured file records.
+      </p>
+      
+      <div class="hero-actions">
+        <a href="#setup" class="btn btn-primary">
+          Get Started <i data-lucide="arrow-right"></i>
+        </a>
+        <a href="https://github.com/0xRasla/logify" target="_blank" class="btn btn-secondary">
+          <i data-lucide="github"></i> GitHub
+        </a>
+      </div>
+
+      <!-- Live-Copy Installation Tool -->
+      <div class="install-box">
+        <div class="install-tabs">
+          <button class="install-tab-btn active" id="tab-bun" onclick="selectTab('bun')">bun</button>
+          <button class="install-tab-btn" id="tab-npm" onclick="selectTab('npm')">npm</button>
+          <button class="install-tab-btn" id="tab-pnpm" onclick="selectTab('pnpm')">pnpm</button>
+          <button class="install-tab-btn" id="tab-yarn" onclick="selectTab('yarn')">yarn</button>
+        </div>
+        <div class="install-command-wrapper">
+          <div>
+            <span class="install-prompt">$</span>
+            <span class="install-code" id="install-command">bun add @rasla/logify</span>
+          </div>
+          <button class="copy-btn" id="install-copy-btn" onclick="copyInstallCmd()" aria-label="Copy Command">
+            <i data-lucide="copy"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Terminal Request Simulator -->
+    <div class="terminal-container">
+      <div class="terminal-header">
+        <div class="terminal-dots">
+          <span class="terminal-dot dot-red"></span>
+          <span class="terminal-dot dot-yellow"></span>
+          <span class="terminal-dot dot-green"></span>
+        </div>
+        <span class="terminal-title">bun run server.ts</span>
+        <div style="width: 2.25rem;"></div>
+      </div>
+      <div class="terminal-body" id="live-terminal-logs">
+        <div class="log-line">
+          <span class="log-time">[17:40:00]</span>
+          <span class="log-level-info">INFO</span>
+          <span class="log-path">🦊 Elysia server started on port 3000</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid Section -->
+  <section class="container" id="features">
+    <div class="section-title-wrapper">
+      <span class="section-tag">Powerful Features</span>
+      <h2 class="section-title">Designed for modern Bun apps</h2>
+    </div>
+    
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="zap"></i>
+        </div>
+        <h3 class="feature-title">Elysia Native</h3>
+        <p class="feature-desc">Fitted precisely to Elysia's lifecycle events. Zero setup with high-resolution execution timelines and zero overhead.</p>
+      </div>
+      
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="palette"></i>
+        </div>
+        <h3 class="feature-title">Colorized Streams</h3>
+        <p class="feature-desc">Color-coded methods and HTTP status symbols (2xx/3xx/4xx/5xx) so your eyes track health in real time.</p>
+      </div>
+      
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="file-text"></i>
+        </div>
+        <h3 class="feature-title">Structured File Logging</h3>
+        <p class="feature-desc">Autocreates log folders and writes organized chronological entries to disk for production reviews.</p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="globe"></i>
+        </div>
+        <h3 class="feature-title">IP Resolution</h3>
+        <p class="feature-desc">Resolves and appends inbound client IPs, including fallbacks for proxy servers behind standard cloud loads.</p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="sliders"></i>
+        </div>
+        <h3 class="feature-title">Path Filtering</h3>
+        <p class="feature-desc">Bypass request logging for system endpoints (like <code>/health</code>, <code>/metrics</code>, or assets) to keep logs clean.</p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="feature-card">
+        <div class="feature-icon-box">
+          <i data-lucide="code-2"></i>
+        </div>
+        <h3 class="feature-title">100% Type-Safe</h3>
+        <p class="feature-desc">Engineered in TypeScript. Ships with type auto-completion and rigid validation for all customization setups.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Setup Section -->
+  <section class="docs-section" id="setup">
+    <div class="container code-grid">
+      <div class="text-block">
+        <span class="section-tag">Quick Start</span>
+        <h3>Three Lines Integration</h3>
+        <p>
+          Simply load and register the <code>logger()</code> middleware into your Elysia chain. It begins tracking your incoming web traffic instantly, printing clear, beautifully aligned console lines with zero custom parameters required.
+        </p>
+        <p>
+          Want specific formats or filters? Just supply your properties to the <code>logger(...)</code> options.
+        </p>
+      </div>
+
+      <!-- Editor Mockup -->
+      <div class="code-editor">
+        <div class="editor-header">
+          <span class="editor-filename">
+            <i data-lucide="file-code" style="color: #f87171;"></i> index.ts
+          </span>
+          <button class="copy-btn" id="code-copy-1" onclick="copySnippet('code-1', 'code-copy-1')" aria-label="Copy Code">
+            <i data-lucide="copy"></i>
+          </button>
+        </div>
+        <div class="editor-body">
+          <pre class="editor-pre" id="code-1"><span class="kw-import">import</span> { Elysia } <span class="kw-import">from</span> <span class="kw-str">"elysia"</span>;
+<span class="kw-import">import</span> { logger } <span class="kw-import">from</span> <span class="kw-str">"@rasla/logify"</span>;
+
+<span class="kw-const">const</span> <span class="kw-func">app</span> = <span class="kw-const">new</span> <span class="kw-func">Elysia</span>()
+  .<span class="kw-func">use</span>(<span class="kw-func">logger</span>())
+  .<span class="kw-func">get</span>(<span class="kw-str">"/"</span>, () => <span class="kw-str">"🦊 Hello World!"</span>)
+  .<span class="kw-func">listen</span>(<span class="kw-num">3000</span>);
+
+console.<span class="kw-func">log</span>(<span class="kw-str">"🦊 Elysia server running at localhost:3000"</span>);</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Global Logger Section -->
+  <section class="docs-section" id="global">
+    <div class="container code-grid">
+      <!-- Editor Mockup -->
+      <div class="code-editor">
+        <div class="editor-header">
+          <span class="editor-filename">
+            <i data-lucide="file-code" style="color: #f87171;"></i> service.ts
+          </span>
+          <button class="copy-btn" id="code-copy-2" onclick="copySnippet('code-2', 'code-copy-2')" aria-label="Copy Code">
+            <i data-lucide="copy"></i>
+          </button>
+        </div>
+        <div class="editor-body">
+          <pre class="editor-pre" id="code-2"><span class="kw-import">import</span> { 
+  initializeLogger, 
+  debug, 
+  info, 
+  warn, 
+  error 
+} <span class="kw-import">from</span> <span class="kw-str">"@rasla/logify"</span>;
+
+<span class="kw-comment">// Configure once in your entry file</span>
+<span class="kw-func">initializeLogger</span>({
+  level: <span class="kw-str">"debug"</span>,
+  file: <span class="kw-const">true</span>,
+  filePath: <span class="kw-str">"./logs/app.log"</span>
+});
+
+<span class="kw-comment">// Execute log commands anywhere in your application</span>
+<span class="kw-func">debug</span>(<span class="kw-str">"Init db connection pool..."</span>);
+<span class="kw-func">info</span>(<span class="kw-str">"System health checked: OK"</span>);
+<span class="kw-func">warn</span>(<span class="kw-str">"Database query latency: 154ms"</span>);
+<span class="kw-func">error</span>(<span class="kw-str">"Failed to retrieve user ID: 219"</span>);</pre>
+        </div>
+      </div>
+
+      <div class="text-block">
+        <span class="section-tag">Global Logger Instance</span>
+        <h3>Application-Wide Messaging</h3>
+        <p>
+          Logify packs a global instance. Instead of injecting custom middleware variables through domain components, simply instantiate Logify's settings once in your setup file via <code>initializeLogger(...)</code>.
+        </p>
+        <p>
+          You can then import clean functions directly: <code>debug()</code>, <code>info()</code>, <code>warn()</code>, and <code>error()</code>. Keep your layers separated and imports simple.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Configuration Playground -->
+  <section class="docs-section playground-section" id="configuration">
+    <div class="container config-grid">
+      
+      <div class="text-block">
+        <span class="section-tag">Configuration</span>
+        <h3>Tailor Every Property</h3>
+        <p>
+          Configure outputs, toggle disk writes, bypass custom route endpoints, and customize terminal strings using rich, modular formatting tokens.
+        </p>
+        <p>
+          Explore a reference options structure you can feed directly into your initialization configurations:
+        </p>
+
+        <div class="code-editor" style="margin-top: 1rem;">
+          <div class="editor-header">
+            <span class="editor-filename">
+              <i data-lucide="settings" style="color: #2dd4bf;"></i> options.ts
+            </span>
+            <button class="copy-btn" id="code-copy-3" onclick="copySnippet('code-3', 'code-copy-3')" aria-label="Copy Code">
+              <i data-lucide="copy"></i>
+            </button>
+          </div>
+          <div class="editor-body">
+            <pre class="editor-pre" id="code-3">{
+  <span class="kw-comment">// Console logs (default: true)</span>
+  console: <span class="kw-const">true</span>,
+
+  <span class="kw-comment">// File logging (default: false)</span>
+  file: <span class="kw-const">true</span>,
+  filePath: <span class="kw-str">'./logs/app.log'</span>,
+
+  <span class="kw-comment">// Log level limit (default: 'info')</span>
+  level: <span class="kw-str">'debug'</span>, <span class="kw-comment">// 'debug' | 'info' | 'warn' | 'error'</span>
+
+  <span class="kw-comment">// Skip routes (avoid health or assets spam)</span>
+  skip: [<span class="kw-str">'/health'</span>, <span class="kw-str">'/metrics'</span>],
+
+  <span class="kw-comment">// Display client IP (default: false)</span>
+  includeIp: <span class="kw-const">true</span>,
+
+  <span class="kw-comment">// String format tokens (see right playground!)</span>
+  format: <span class="kw-str">'[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms'</span>
+}</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Playground Card -->
+      <div class="playground-card" id="playground">
+        <h3 class="playground-title">
+          <i data-lucide="terminal"></i>
+          Log Formatter Playground
+        </h3>
+        <p style="font-size: 0.95rem; color: var(--text-secondary); margin-top: -0.5rem;">
+          Build your custom terminal output view. Modify the format string below, or click tokens to append them, and see the immediate output.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="custom-format-input">Format String Pattern</label>
+          <div class="format-input-wrapper">
+            <input type="text" class="format-input" id="custom-format-input" value="[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms{ip}">
+            <button class="format-input-reset" onclick="resetPlayground()">Reset</button>
+          </div>
+        </div>
+
+        <div>
+          <p class="token-pills-label">Available Tokens (Click to append)</p>
+          <div class="token-pills">
+            <button class="token-pill" onclick="appendToken('{timestamp}')">{timestamp}</button>
+            <button class="token-pill" onclick="appendToken('{level}')">{level}</button>
+            <button class="token-pill" onclick="appendToken('{method}')">{method}</button>
+            <button class="token-pill" onclick="appendToken('{path}')">{path}</button>
+            <button class="token-pill" onclick="appendToken('{statusCode}')">{statusCode}</button>
+            <button class="token-pill" onclick="appendToken('{duration}')">{duration}</button>
+            <button class="token-pill" onclick="appendToken('{ip}')">{ip}</button>
+          </div>
+        </div>
+
+        <div class="playground-preview-terminal">
+          <div class="preview-header">
+            <span>Terminal Preview Output</span>
+            <span style="color: var(--accent-secondary); font-weight: bold; font-family: var(--font-mono); font-size: 0.65rem;">LIVE</span>
+          </div>
+          <div class="preview-body" id="playground-preview-body">
+            <!-- Rendered in real-time -->
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Token Reference Table -->
+  <section class="container table-section">
+    <div class="section-title-wrapper" style="margin-bottom: 3rem;">
+      <span class="section-tag">Reference Guide</span>
+      <h2 class="section-title">Token Reference</h2>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Token</th>
+            <th>Resolves To</th>
+            <th>Terminal Preview Example</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="token-name">{timestamp}</span></td>
+            <td>ISO-8601 formatted global time string</td>
+            <td><span class="token-example" style="color: var(--term-gray);">2026-05-21T17:40:00.123Z</span></td>
+          </tr>
+          <tr>
+            <td><span class="token-name">{level}</span></td>
+            <td>Colorized severity tag (INFO, WARN, ERROR)</td>
+            <td><span class="token-example log-level-info">INFO</span></td>
+          </tr>
+          <tr>
+            <td><span class="token-name">{method}</span></td>
+            <td>HTTP request verb (GET, POST, PUT, DELETE)</td>
+            <td><span class="token-example log-method-get">GET</span></td>
+          </tr>
+          <tr>
+            <td><span class="token-name">{path}</span></td>
+            <td>Target endpoint relative pathname</td>
+            <td><span class="token-example" style="color: var(--text-primary);">/api/users</span></td>
+          </tr>
+          <tr>
+            <td><span class="token-name">{statusCode}</span></td>
+            <td>Dynamic HTTP status code (green/yellow/red)</td>
+            <td><span class="token-example log-status-2xx">200</span></td>
+          </tr>
+          <tr>
+            <td><span class="token-name">{duration}</span></td>
+            <td>Request execution time measured in ms</td>
+            <td><span class="token-example log-duration">8.4ms</span></td>
+          </tr>
+          <tr>
+            <td><span class="token-name">{ip}</span></td>
+            <td>The client IP resolve (e.g. proxy header fallback)</td>
+            <td><span class="token-example log-ip">127.0.0.1</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-wrapper">
+      <div class="footer-brand">
+        <a href="#" class="logo-wrapper" style="margin-bottom: 0.25rem;">
+          <div class="logo-icon" style="width: 1.8rem; height: 1.8rem;">
+            <i data-lucide="terminal"></i>
+          </div>
+          <span class="logo-text" style="font-size: 1.2rem;">Logify</span>
+        </a>
+        <p class="footer-copy">Beautiful, clean logging layouts.</p>
+      </div>
+
+      <div class="footer-links">
+        <a href="#features">Features</a>
+        <a href="#setup">Setup</a>
+        <a href="#configuration">Playground</a>
+        <a href="https://github.com/0xRasla/logify" target="_blank">GitHub</a>
+        <a href="https://opensource.org/licenses/MIT" target="_blank">License</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Logic -->
+  <script>
+    // Initialize icons
+    lucide.createIcons();
+
+    // -------------------------------------------------------------
+    // Live Repo & NPM Stats Fetch Integration
+    // -------------------------------------------------------------
+    async function fetchStats() {
+      // 1. Fetch GitHub Stars
+      try {
+        const res = await fetch('https://api.github.com/repos/0xRasla/logify');
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('github-stars-count').textContent = data.stargazers_count;
+        } else {
+          document.getElementById('github-stars-count').textContent = '24'; // Fallback value
+        }
+      } catch (err) {
+        document.getElementById('github-stars-count').textContent = '24'; // Fallback value
+      }
+
+      // 2. Fetch NPM Downloads
+      try {
+        const res = await fetch('https://api.npmjs.org/downloads/point/last-week/@rasla/logify');
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('npm-downloads-count').textContent = data.downloads;
+          document.getElementById('hero-downloads-count').textContent = data.downloads + ' downloads/week';
+        } else {
+          document.getElementById('npm-downloads-count').textContent = '540'; // Fallback value
+          document.getElementById('hero-downloads-count').textContent = '540+ downloads/week';
+        }
+      } catch (err) {
+        document.getElementById('npm-downloads-count').textContent = '540'; // Fallback value
+        document.getElementById('hero-downloads-count').textContent = '540+ downloads/week';
+      }
+    }
+
+    // Trigger stats load
+    fetchStats();
+
+    // -------------------------------------------------------------
+    // Terminal Install Package Tabs
+    // -------------------------------------------------------------
+    const installCommands = {
+      bun: 'bun add @rasla/logify',
+      npm: 'npm install @rasla/logify',
+      pnpm: 'pnpm add @rasla/logify',
+      yarn: 'yarn add @rasla/logify'
+    };
+
+    let activeTab = 'bun';
+
+    function selectTab(tab) {
+      document.querySelectorAll('.install-tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      activeTab = tab;
+      
+      const cmdElement = document.getElementById('install-command');
+      cmdElement.textContent = installCommands[tab];
+
+      // Reset copy button icon
+      const copyBtn = document.getElementById('install-copy-btn');
+      copyBtn.innerHTML = '<i data-lucide="copy"></i>';
+      lucide.createIcons();
+    }
+
+    function copyInstallCmd() {
+      const codeText = installCommands[activeTab];
+      navigator.clipboard.writeText(codeText).then(() => {
+        const copyBtn = document.getElementById('install-copy-btn');
+        copyBtn.innerHTML = '<i data-lucide="check" style="color: #34d399;"></i>';
+        lucide.createIcons();
+        
+        setTimeout(() => {
+          copyBtn.innerHTML = '<i data-lucide="copy"></i>';
+          lucide.createIcons();
+        }, 2000);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // Copy Code Snippets
+    // -------------------------------------------------------------
+    function copySnippet(elementId, btnId) {
+      const codeElement = document.getElementById(elementId);
+      const textToCopy = codeElement.innerText || codeElement.textContent;
+      
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        const btn = document.getElementById(btnId);
+        btn.innerHTML = '<i data-lucide="check" style="color: #34d399;"></i>';
+        lucide.createIcons();
+        
+        setTimeout(() => {
+          btn.innerHTML = '<i data-lucide="copy"></i>';
+          lucide.createIcons();
+        }, 2000);
+      });
+    }
+
+    // -------------------------------------------------------------
+    // Real-Time Server Log Simulator
+    // -------------------------------------------------------------
+    const termLogsContainer = document.getElementById('live-terminal-logs');
+    
+    // Sample routes & statuses to construct dynamic logs
+    const methods = ['GET', 'POST', 'PUT', 'DELETE'];
+    const paths = [
+      '/', '/api/users', '/api/users/12', '/api/posts', 
+      '/api/auth/login', '/health', '/metrics', '/api/comments', 
+      '/static/style.css', '/api/search?q=elysia'
+    ];
+    const statuses = [200, 200, 201, 204, 304, 400, 401, 404, 500];
+
+    function getRandomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function addSimulatedLog() {
+      const maxLogs = 9;
+      const logLines = termLogsContainer.querySelectorAll('.log-line');
+      if (logLines.length >= maxLogs) {
+        logLines[0].remove();
+      }
+
+      const now = new Date();
+      const timeStr = `[${now.toTimeString().split(' ')[0]}]`;
+      
+      const method = getRandomItem(methods);
+      const path = getRandomItem(paths);
+      
+      let status = getRandomItem(statuses);
+      if (path === '/health' || path === '/metrics') {
+        status = Math.random() > 0.85 ? 304 : 200;
+      }
+      if (path === '/api/auth/login' && Math.random() > 0.7) {
+        status = 401;
+      }
+
+      let level = 'INFO';
+      let levelClass = 'log-level-info';
+      if (status >= 400 && status < 500) {
+        level = 'WARN';
+        levelClass = 'log-level-warn';
+      } else if (status >= 500) {
+        level = 'ERROR';
+        levelClass = 'log-level-error';
+      }
+
+      let statusClass = 'log-status-2xx';
+      if (status >= 300 && status < 400) statusClass = 'log-status-3xx';
+      if (status >= 400 && status < 500) statusClass = 'log-status-4xx';
+      if (status >= 500) statusClass = 'log-status-5xx';
+
+      let duration = (Math.random() * 45 + 0.5).toFixed(1);
+      if (path.includes('users') || path.includes('posts')) {
+        duration = (Math.random() * 80 + 10).toFixed(1);
+      }
+
+      const ip = Math.random() > 0.7 ? '192.168.1.52' : '127.0.0.1';
+
+      const logLine = document.createElement('div');
+      logLine.className = 'log-line';
+
+      logLine.innerHTML = `
+        <span class="log-time">${timeStr}</span>
+        <span class="${levelClass}">${level}</span>
+        <span class="log-method-${method.toLowerCase()}">[${method}]</span>
+        <span class="log-path">${path}</span>
+        <span class="${statusClass}">${status}</span>
+        <span class="log-duration">${duration}ms</span>
+        <span class="log-ip">${ip}</span>
+      `;
+
+      termLogsContainer.appendChild(logLine);
+    }
+
+    // Initial logs
+    for (let i = 0; i < 4; i++) {
+      setTimeout(addSimulatedLog, i * 400);
+    }
+
+    // Stream logs
+    setInterval(addSimulatedLog, 2500);
+
+    // -------------------------------------------------------------
+    // Live Format token playground logic
+    // -------------------------------------------------------------
+    const formatInput = document.getElementById('custom-format-input');
+    const playgroundPreview = document.getElementById('playground-preview-body');
+
+    const playgroundMockRequests = [
+      {
+        time: '17:40:00.123',
+        level: 'INFO',
+        method: 'GET',
+        path: '/api/users',
+        statusCode: 200,
+        duration: '12.4',
+        ip: '127.0.0.1'
+      },
+      {
+        time: '17:40:02.456',
+        level: 'WARN',
+        method: 'GET',
+        path: '/health',
+        statusCode: 304,
+        duration: '1.9',
+        ip: '127.0.0.1'
+      },
+      {
+        time: '17:40:04.789',
+        level: 'ERROR',
+        method: 'POST',
+        path: '/api/login',
+        statusCode: 401,
+        duration: '42.8',
+        ip: '192.168.1.15'
+      }
+    ];
+
+    function renderPlayground() {
+      const formatString = formatInput.value;
+      playgroundPreview.innerHTML = '';
+
+      playgroundMockRequests.forEach(req => {
+        let renderedHtml = formatString;
+
+        const levelSpan = `<span class="log-level-${req.level.toLowerCase()}">${req.level}</span>`;
+        const methodSpan = `<span class="log-method-${req.method.toLowerCase()}">${req.method}</span>`;
+        
+        let statusClass = 'log-status-2xx';
+        if (req.statusCode >= 300 && req.statusCode < 400) statusClass = 'log-status-3xx';
+        if (req.statusCode >= 400 && req.statusCode < 500) statusClass = 'log-status-4xx';
+        if (req.statusCode >= 500) statusClass = 'log-status-5xx';
+        const statusSpan = `<span class="${statusClass}">${req.statusCode}</span>`;
+        
+        const timeSpan = `<span class="log-time">${req.time}</span>`;
+        const pathSpan = `<span class="log-path">${req.path}</span>`;
+        const durationSpan = `<span class="log-duration">${req.duration}ms</span>`;
+        const ipSpan = `<span class="log-ip"> ${req.ip}</span>`;
+
+        renderedHtml = renderedHtml.replace(/{timestamp}/g, timeSpan);
+        renderedHtml = renderedHtml.replace(/{level}/g, levelSpan);
+        renderedHtml = renderedHtml.replace(/{method}/g, methodSpan);
+        renderedHtml = renderedHtml.replace(/{path}/g, pathSpan);
+        renderedHtml = renderedHtml.replace(/{statusCode}/g, statusSpan);
+        renderedHtml = renderedHtml.replace(/{duration}/g, durationSpan);
+        renderedHtml = renderedHtml.replace(/{ip}/g, ipSpan);
+
+        const previewLine = document.createElement('div');
+        previewLine.className = 'log-line';
+        previewLine.innerHTML = renderedHtml;
+        playgroundPreview.appendChild(previewLine);
+      });
+    }
+
+    function appendToken(token) {
+      const start = formatInput.selectionStart;
+      const end = formatInput.selectionEnd;
+      const text = formatInput.value;
+      const before = text.substring(0, start);
+      const after = text.substring(end, text.length);
+      formatInput.value = before + token + after;
+      formatInput.focus();
+      formatInput.selectionStart = formatInput.selectionEnd = start + token.length;
+      renderPlayground();
+    }
+
+    function resetPlayground() {
+      formatInput.value = '[{timestamp}] {level} [{method}] {path} - {statusCode} {duration}ms{ip}';
+      renderPlayground();
+    }
+
+    formatInput.addEventListener('input', renderPlayground);
+    renderPlayground();
+  </script>
+</body>
+</html>
